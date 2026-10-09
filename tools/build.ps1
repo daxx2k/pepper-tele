@@ -1,4 +1,4 @@
-[CmdletBinding()] param([ValidateSet('All','Quest','Pepper')][string]$Target='All')
+[CmdletBinding()] param([ValidateSet('Quest')][string]$Target='Quest')
 $ErrorActionPreference='Stop'
 $root=Split-Path $PSScriptRoot -Parent
 if(Test-Path -LiteralPath (Join-Path $root '.local\build.env.ps1')){. (Join-Path $root '.local\build.env.ps1')}
@@ -12,9 +12,8 @@ $sdk=$env:ANDROID_HOME.Replace('\','/')
 Set-Content -LiteralPath (Join-Path $root 'local.properties') -Value "sdk.dir=$sdk"
 $gradle=Join-Path $root 'gradlew.bat'
 if(-not (Test-Path -LiteralPath $gradle)){throw 'Gradle wrapper missing; restore gradlew.bat and gradle/wrapper from the source package.'}
-$tasks=@(switch($Target){'Quest'{':quest:assembleDebug'} 'Pepper'{':pepper:tablet:assembleDebug'} default {':quest:assembleDebug',':pepper:tablet:assembleDebug'}})
+$tasks=@(':quest:assembleDebug')
 Push-Location $root
 try { & $gradle @tasks --console=plain --no-daemon; if($LASTEXITCODE -ne 0){throw 'Build failed'} } finally { Pop-Location }
 $dist=Join-Path $root 'dist';New-Item -ItemType Directory -Force -Path $dist | Out-Null
-if($Target -ne 'Pepper'){Copy-Item -LiteralPath (Join-Path $root 'quest\build\outputs\apk\debug\quest-debug.apk') -Destination (Join-Path $dist 'TelePepper-Quest.apk')}
-if($Target -ne 'Quest'){Copy-Item -LiteralPath (Join-Path $root 'pepper\tablet\build\outputs\apk\debug\tablet-debug.apk') -Destination (Join-Path $dist 'TelePepper-Pepper.apk')}
+if($Target -ne 'Pepper'){Copy-Item -LiteralPath (Join-Path $root 'quest\build\outputs\apk\debug\quest-debug.apk') -Destination (Join-Path $dist 'TelePepper-Quest25.apk')}

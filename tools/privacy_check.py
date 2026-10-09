@@ -81,7 +81,7 @@ def main():
     args = parser.parse_args()
     files = list(source_files())
     if args.apks:
-        files.extend(ROOT/'dist'/name for name in ('TelePepper-Quest.apk', 'TelePepper-Pepper.apk'))
+        files.extend(ROOT/'dist'/name for name in ('TelePepper-Quest25.apk',))
     errors = audit(files)
     for name, category in errors:
         print(category+': '+name)

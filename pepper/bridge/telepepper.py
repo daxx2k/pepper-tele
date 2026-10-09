@@ -48,8 +48,8 @@ LIMITS = [(-1.0, 1.0), (-.68, .43), (-2.05, 2.05), (.05, 1.48),
 # before switching from a test cap back to None.
 BASE_TEST_CAP = None
 # External collision margins in metres. These do not disable base protection.
-BASE_ORTHOGONAL_SECURITY_M = 0.20
-BASE_TANGENTIAL_SECURITY_M = 0.05
+BASE_ORTHOGONAL_SECURITY_M = 0.40
+BASE_TANGENTIAL_SECURITY_M = 0.10
 #BASE_ORTHOGONAL_SECURITY_M = 0.40
 #BASE_TANGENTIAL_SECURITY_M = 0.10
 def clamp(x, low, high):
@@ -112,7 +112,7 @@ def prepare_bottom_camera(video):
         except Exception as exc: result[name+'_error']=str(exc)
     return result
 
-from speech_arms import SpeechArms, install_package
+from speech_arms import SpeechArms
 
 class Robot(object):
     def __init__(self, simulate=False):
@@ -157,20 +157,17 @@ class Robot(object):
         import qi
         self.session = qi.Session()
         self.session.connect('tcp://127.0.0.1:9559')
+        version=self.session.service('ALSystem').systemVersion(_async=True).value(2000)
+        if not str(version).startswith('2.5.'):
+            raise RuntimeError('This fork requires NAOqi 2.5; found '+str(version))
         self.motion = self.session.service('ALMotion')
         configure_base_security(self.motion)
         try:
-            package=os.path.join(os.path.dirname(os.path.abspath(__file__)),'telepepper-anims.pkg')
-            if os.path.isfile(package):
-                manager=self.session.service('PackageManager')
-                if not manager.hasPackage('telepepper-anims') or manager.package2('telepepper-anims')['version']!=PACKAGE_VERSION:
-                    if not manager.install(package,_async=True).value(10000):
-                        raise RuntimeError('Official clip package installation failed')
-            speaking_package=os.path.join(os.path.dirname(os.path.abspath(__file__)),'telepepper-speaking.pkg')
-            install_package(self.session,speaking_package)
             self.animation_player=self.session.service('ALAnimationPlayer')
             self.available_animations=set(self.animation_player._getAnimations(_async=True).value(2000))
         except Exception as exc:print('Official animation library unavailable: '+str(exc))
+        from speech_player25 import SpeechPlayer25
+        self.speech_animation_player=SpeechPlayer25(self.motion)
         self.base_collision_enabled = bool(self.motion.getExternalCollisionProtectionEnabled('Move'))
         self.life = self.session.service('ALAutonomousLife')
         self.video = self.session.service('ALVideoDevice')

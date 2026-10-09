@@ -48,16 +48,16 @@ int main(){using namespace dashboard_layout;
     assert(cameraGap==20&&cameraBlendPixels<.03f*cameras[1].h&&cameraCornerRadius<=8);
     for(int c=0;c<2;++c){auto fullCamera=contain(cameras[c],320,240);assert(fullCamera.w==cameras[c].w&&fullCamera.h==cameras[c].h);assert(cameras[c].x>=fusion.x&&cameras[c].x+cameras[c].w<=fusion.x+fusion.w&&cameras[c].y+cameras[c].h<=fusion.y+fusion.h);}
     auto full=contain(cameras[2],320,240),wide=contain(cameras[2],1920,1080),square=contain(cameras[2],512,512);
-    assert(full.w==cameras[2].w&&full.h==cameras[2].h);
-    assert(wide.w==cameras[2].w&&wide.h<cameras[2].h&&std::abs(wide.w/wide.h-16.f/9)<1e-5);
+    assert(full.w<=cameras[2].w&&full.h<=cameras[2].h&&std::abs(full.w/full.h-4.f/3)<1e-5);
+    assert(wide.w<=cameras[2].w&&wide.h<=cameras[2].h&&std::abs(wide.w/wide.h-16.f/9)<1e-5);
     assert(square.w==square.h&&square.w==cameras[2].h&&square.x>cameras[2].x);
     assert(cameras[2].y>fusion.y+fusion.h&&cameras[2].w<277&&cameras[2].h<208);
     assert(lidar.y>fusion.y+fusion.h&&lidar.w<424&&lidar.h<208);
-    assert(cameras[2].x+cameras[2].w<lidar.x&&lidar.x+lidar.w<tablet.x);
+    assert(cameras[2].x+cameras[2].w<lidar.x&&lidar.x+lidar.w<=lidarCard.x+lidarCard.w);
     assert(tablet.y>fusion.y+fusion.h&&tablet.y+tablet.h<=950);
     assert(tablet.y<=cameras[2].y&&tablet.y+tablet.h>=cameras[2].y+cameras[2].h);
     assert(groupY[4]>temperatures.y+temperatures.h&&x[4]==comparison.x);
-    assert(fusion.w==460&&cameras[0].w==444&&depthCard.x+depthCard.w<=lidarCard.x&&lidarCard.x+lidarCard.w<=tablet.x);
+    assert(fusion.w==460&&cameras[0].w==444&&depthCard.x+depthCard.w<=lidarCard.x&&lidarCard.x+lidarCard.w<=fusion.x+fusion.w);
     assert(temperatures.w==440&&temperatures.h>240&&comparison.y+comparison.h<temperatures.y);
     assert(groupHeight[4]<170);
     for(int i=0;i<20;++i){auto tile=temperatureTile(i);assert(temperatureAt(tile.x+2,tile.y+2)==i);assert(tile.h>40&&tile.y+tile.h<temperatures.y+temperatures.h-18);}

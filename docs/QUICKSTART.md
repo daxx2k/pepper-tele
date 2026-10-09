@@ -1,63 +1,48 @@
-# TelePepper for Pepper 2.9 â€” 0.3.4-test
-
-This package contains the Pepper Android tablet app and the native Quest app. During use, Quest communicates directly with the robot head; a PC is needed only for initial installation. Use your own robot credentials and pairing code.
+# Quick start: Quest 3/3S and Pepper NAOqi 2.5
 
 ## Requirements
 
-- Pepper with an Android tablet and NAOqi 2.9. The development robot runs 2.9.5.172, Python 2.7 with qi/Pillow and user systemd.
-- Quest 3, developer mode, USB debugging and authorized controllers.
-- A PC with Android platform-tools (ADB) for sideloading.
-- A shared Wi-Fi network that permits device-to-device traffic; SSH access to your robot head for first setup.
+Pepper must run NAOqi 2.5.x and allow owner SSH access. Its existing Python 2.7 environment must include qi and Pillow. CONNECT checks these before installation; it does not install system dependencies or change firmware. Both devices must share Wi-Fi permitting peer traffic.
 
-## Install the apps
+## Install Quest once
 
-Extract the ZIP before running the installer. Identify Quest with `adb devices`. Enable ADB on the Pepper tablet and connect over Wi-Fi with `adb connect TABLET_IP:5555`. The tablet ADB address and robot head Wi-Fi address can be different.
-
-For Quest, Meta Quest Developer Hub (MDH) provides graphical installation: enable developer mode, connect by USB, authorize debugging, then use Device Manager > Apps > Add Build or drag TelePepper-Quest.apk. The following ADB/PowerShell installer is an alternative and also installs the Cori engine. Replace the placeholders with your own serials:
+Extract the package. Install TelePepper-Quest25.apk with Meta Quest Developer Hub (MDH): connect Quest by USB, authorize debugging, select Device Manager, then under Apps drag the APK or click Add Build. The following ADB command is an optional alternative:
 
 ```powershell
-.\Install.ps1 -Device Pepper -Serial TABLET_ADB_SERIAL -Adb C:\Android\platform-tools\adb.exe
-.\Install.ps1 -Device Quest -Serial QUEST_USB_SERIAL -Adb C:\Android\platform-tools\adb.exe
+adb -s QUEST_USB_SERIAL install -r TelePepper-Quest25.apk
 ```
 
-The Quest installer downloads and installs the pinned offline British English Cori voice engine (about 86 MB), then installs TelePepper. Internet is needed for this initial download; Piper synthesis then runs on Quest. The Cori APK replaces other model variants of the same sherpa-onnx engine package. Installation preserves app data and never uninstalls automatically.
+Replace the placeholder using adb devices. Launch TelePepper 2.5 from the Quest library. Its distinct application ID lets it coexist with the original app. The PC is only needed for this initial sideload; it is never a relay during use.
 
-## Connect your Pepper
+## Connect directly from Quest
 
-1. Open TelePepper on Pepper's tablet. In Advanced setup, enter your robot's own SSH username and password. The tablet-to-head address defaults to its internal address, `198.18.0.1`.
-2. Press CONNECT (the button becomes START after connection) and confirm the SSH identity for your robot. First setup checks dependencies and installs the bundled head bridge. CONNECT starts the service disarmed; it does not wake or move Pepper. The service does not start at robot boot.
-3. Copy the private Quest pairing code shown on the tablet. Press START on the tablet to prepare Pepper and open the participant display; leave room for its operating posture.
-4. Open TelePepper on Quest from the sideloaded/Unknown Sources library. In Connection settings, select Find Pepper on Wi-Fi, choose your robot, enter its pairing code, then save and open VR. If discovery is unavailable, enter the robot HEAD Wi-Fi address shown under For Robot Browser on Pepper's tablet.
-5. Centre the sticks and look forward. Hold A + X for 0.75 seconds, or select START, to calibrate and engage tracking.
+1. Enter the robot head IPv4 address used by Choregraphe/SSH, your SSH user (normally nao) and password in Connection settings.
+2. Press CONNECT Pepper 2.5. Confirm the fingerprint only for your own robot. The app checks the firmware, installs its separate head service, creates pairing automatically and starts disarmed.
+3. Press Save and open VR studio.
+4. Centre sticks, look forward and hold A + X for 0.75 seconds. This can disable autonomy and wake Pepper into its operating posture before tracking begins. Keep clear of its arms.
 
-Discovery finds a running TelePepper service. Wi-Fi client isolation can block it. A subsequent CONNECT starts an already installed bridge without overwriting manual head updates; updating the Android APK alone does not replace a previously configured head bridge. Keep a backup of custom head scripts when upgrading an existing installation.
+There is no Pepper tablet app. After Exit, use CONNECT in Quest settings to start another session.
 
-## Controls
+## First physical trial
 
-| Control | Action |
-| --- | --- |
-| Hold A + X | Start / Pause; release both before repeating |
-| B | Immediate STOP and animation cancellation |
-| Left stick | Move forward/backward and sideways |
-| Right stick | Rotate the base |
-| Front triggers | Close hands; right trigger clicks when using the pointer |
-| Right grip | Show the controller pointer |
-| Left grip | Push to talk; release for recognized speech, or stream directly in Puppeteer mode |
-| Both grips together, hold 0.35 seconds | Toggle automatic speech gestures; release both before repeating |
-| Recalibrate | Refresh head, arms, wrists, hands, torso and base references |
+Keep default protections. With the base still, test small head/arm motions and triggers, then STOP and B. Then try a small translation/rotation in clear space. Verify tracking/Wi-Fi loss stops movement before involving other people. Physical compatibility and latency on this robot remain unverified until this trial.
 
-Piper/Cori is the default voice, volume starts at 50%, and listening to Pepper's microphone starts OFF. Voice settings also offer Pepper TTS and the live puppeteer microphone. Speech captions can be shown on the tablet. Presets and queued Piper speech share the same playback path; Stop speech cancels pending phrases.
+## End the session
 
-Automatic gestures start OFF. When enabled with live tracking armed, official arm-only gesture derivatives accompany Pepper TTS, Piper and a left-grip release in live microphone mode. Head, torso assistance and joystick control continue. At speech end, arms return gradually from their measured pose to tracking. Turning the gesture mode OFF leaves speech playing. See HELP.md for details.
+STOP pauses tracking and gently returns to neutral. B immediately cancels motion, animations and neutral return. Neither ends the service.
 
-Help opens beside the dashboard and leaves tracking and controls available. Pin locks the window in the room; Layout lets you arrange independent panels and save presets. Clicking Top, Bottom, Depth or Lidar toggles the corresponding feature. Depth is monochrome: bright near, dark far; invalid measurements are black. The top/bottom camera transition is a visual blend, not calibrated panoramic stitching.
+Exit TelePepper in Connection controls acknowledges STOP, cancels speech, restores normal Autonomous Life and ends the service. Failed stop confirmation never restores autonomy. Force-closing the app or losing Wi-Fi cannot guarantee Exit reaches the robot: reconnect and explicitly exit, or use the robot's own controls.
 
-## Finish and troubleshoot
+## Voice and optional features
 
-Use Exit TelePepper to stop control, restore normal autonomous mode and stop the head service. Use tablet CONNECT again for the next session. Disconnects and watchdog stops do not restore autonomy automatically.
+Pepper TTS is the default and needs no extra voice APK. Optional Piper/Cori requires an English engine installed on Quest; Install-Cori.ps1 can install the pinned model with internet access during initial setup. Transcription depends on Quest speech services/language models. Listen defaults OFF to avoid feedback.
 
-If connection fails, check the running service, head address, pairing code and Wi-Fi isolation. Ports: TCP 9570 control, UDP 9571 motion, TCP 9572 media, UDP 9573 audio, UDP 9574 discovery. Keep these services on your trusted local network.
+Camera, Depth, audio, sensor and animation availability vary with hardware/runtime. Stale/missing feeds show static. Only confirmed animation paths appear; the fork does not install 2.9 clips or invent substitutes.
 
-Before use, check STOP, tracking-loss behaviour and movement on your robot. The new speech gesture mode still needs a physical operator trial; automated tests do not establish mechanical latency. See VALIDATION.md for the exact checks completed, HELP.md for controls and THIRD-PARTY.md for notices. Recording and session export are deferred.
+## Troubleshooting
 
-Tablet configuration is compact on one screen: CONNECT becomes START once connected, and DISPLAY opens the participant screen directly. The participant screen shows only the settings icon and small status indicators.
+Wrong firmware: 2.9 is rejected before installation. Authentication: use the robot SSH password, not a pairing token. Missing qi/Pillow: check the existing runtime, do not upgrade firmware for this trial. Ports used: end the other teleoperation service first; this fork never kills unrelated processes.
+
+Report firmware, the exact error and failing feature without passwords/pairing data. Do not install a Pepper Android APK on this robot.
+
+With Gestures ON, release the left push-to-talk grip to trigger arm gestures. Hold both grips for 0.35 seconds to toggle the mode. See HELP.md for timing and safety behaviour.

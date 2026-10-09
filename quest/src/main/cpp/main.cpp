@@ -135,11 +135,11 @@ class App {
     bool preserveColors=false;
     struct KeepColors {bool& flag;bool previous;explicit KeepColors(bool& value,bool enabled=true):flag(value),previous(value){flag=previous||enabled;}~KeepColors(){flag=previous;}};
     bool floating=false,layoutEditing=false;int layoutSlot=0,pointerCard=-1,cardDrag=-1;uint32_t maxLayers=16;
-    std::array<float,13> cardScales{};std::array<XrPosef,13> cardPoses{};XrPosef cardGrab=identity();
+    std::array<float,floating_layout::count> cardScales{};std::array<XrPosef,floating_layout::count> cardPoses{};XrPosef cardGrab=identity();
     nlohmann::json layoutPresets=nlohmann::json::array({nullptr,nullptr,nullptr});
-    void resetLayout(){for(int i=0;i<13;++i){cardPoses[i]=floating_layout::initial(i);cardScales[i]=1;}}
-    nlohmann::json encodeLayout(){auto a=nlohmann::json::array();for(int i=0;i<13;++i){auto p=cardPoses[i];a.push_back({p.position.x,p.position.y,p.position.z,p.orientation.x,p.orientation.y,p.orientation.z,p.orientation.w,cardScales[i]});}return a;}
-    bool decodeLayout(const nlohmann::json& a){if(!a.is_array()||a.size()!=13)return false;auto next=cardPoses;auto sizes=cardScales;try{for(int i=0;i<13;++i){if(!a[i].is_array()||(a[i].size()!=7&&a[i].size()!=8))return false;auto r=a[i];XrPosef p{{r[3].get<float>(),r[4].get<float>(),r[5].get<float>(),r[6].get<float>()},{r[0].get<float>(),r[1].get<float>(),r[2].get<float>()}};if(!floating_layout::valid(p))return false;next[i]=p;if(r.size()==8){float v=r[7].get<float>();if(!std::isfinite(v)||v<.5f||v>2)return false;sizes[i]=v;}else sizes[i]=1;}}catch(...){return false;}cardPoses=next;cardScales=sizes;return true;}
+    void resetLayout(){for(int i=0;i<floating_layout::count;++i){cardPoses[i]=floating_layout::initial(i);cardScales[i]=1;}}
+    nlohmann::json encodeLayout(){auto a=nlohmann::json::array();for(int i=0;i<floating_layout::count;++i){auto p=cardPoses[i];a.push_back({p.position.x,p.position.y,p.position.z,p.orientation.x,p.orientation.y,p.orientation.z,p.orientation.w,cardScales[i]});}return a;}
+    bool decodeLayout(const nlohmann::json& a){if(!a.is_array()||a.size()!=floating_layout::count)return false;auto next=cardPoses;auto sizes=cardScales;try{for(int i=0;i<floating_layout::count;++i){if(!a[i].is_array()||(a[i].size()!=7&&a[i].size()!=8))return false;auto r=a[i];XrPosef p{{r[3].get<float>(),r[4].get<float>(),r[5].get<float>(),r[6].get<float>()},{r[0].get<float>(),r[1].get<float>(),r[2].get<float>()}};if(!floating_layout::valid(p))return false;next[i]=p;if(r.size()==8){float v=r[7].get<float>();if(!std::isfinite(v)||v<.5f||v>2)return false;sizes[i]=v;}else sizes[i]=1;}}catch(...){return false;}cardPoses=next;cardScales=sizes;return true;}
     void saveLayout(){auto state=nlohmann::json{{"version",1},{"floating",floating},{"current",encodeLayout()},{"presets",layoutPresets},{"slot",layoutSlot}}.dump();JNIEnv* env=nullptr;app->activity->vm->AttachCurrentThread(&env,nullptr);auto cls=env->GetObjectClass(app->activity->clazz);auto str=env->NewStringUTF(state.c_str());env->CallVoidMethod(app->activity->clazz,env->GetMethodID(cls,"saveLayout","(Ljava/lang/String;)V"),str);env->DeleteLocalRef(str);env->DeleteLocalRef(cls);}
     bool updateCardGesture(bool trigger,float dt){
         if(cardDrag>=0){if(!trigger||!pointerGrip.held||!focused){cardDrag=-1;saveLayout();return true;}XrPosef controller;if(controllerPose(controller)){dt=bounded(dt,0,.05f);auto axes=stick(1);cardGrab=panel_anchor::depth(cardGrab,axes.y,dt);cardPoses[cardDrag]=floating_layout::relative(roomPanel,panel_anchor::compose(controller,cardGrab),panelWidth());cardScales[cardDrag]=bounded(cardScales[cardDrag]*std::exp(deadzone(axes.x)*dt*.4f),.5f,2.f);}else {cardDrag=-1;saveLayout();}return true;}
@@ -340,25 +340,19 @@ void main(){
         auto speechGestures=state.value("speech_gestures",J::object());
         rows.push_back({speechGestures.value("enabled",false)?"Gestures: ON":"Gestures: OFF","Release left grip to gesture / both grips toggle",{{"cmd","speech_gestures"},{"enabled",!speechGestures.value("enabled",false)}}});
         rows.push_back({"Voice demo","Hear the selected voice on Pepper",{{"cmd","say"},{"text",voiceItalian?"Ciao, sono Pepper. Come posso aiutarti?":"Hi, I am Pepper. How can I help you?"}}});
-        rows.push_back({state.value("speech_on_tablet",true)?"Speech on tablet: ON":"Speech on tablet: OFF","Show Pepper TTS and Cori phrases automatically",{{"cmd","speech_on_tablet"},{"enabled",!state.value("speech_on_tablet",true)}}});
         rows.push_back({"Stop speech","Interrupt Pepper's current phrase",{{"cmd","speech_stop"}}});
         rows.push_back({poseMirror?"Pose mirror: ON":"Pose mirror: OFF","Facing Pepper: reflect arms, hands, head and torso",{{"cmd","local_pose_mirror"}}});
-        rows.push_back({"Welcome","Display a welcome on Pepper tablet / no speech",{{"cmd","tablet"},{"text","Welcome! I am Pepper."},{"choices",J::array()}}});
-        const char* reactions[]={"smile","laugh","love","surprise","sad","wink","angry"};
-        const char* reactionLabels[]={"Smile","Laugh","Love","Surprise","Sad","Wink","Angry"};
-        for(int i=0;i<7;++i)rows.push_back({reactionLabels[i],"Show a big reaction emoji on Pepper tablet",{{"cmd","tablet"},{"reaction",reactions[i]}}});
         rows.push_back({"Recalibrate","Recalibrate head, arms, wrists, hands, torso and base reference",{{"cmd","local_calibrate"}}});
         auto limits=state.value("robot_limits",J::object());
         const char* limitKeys[]={"range","speed"};const char* limitLabels[]={"Joint limits","Speed limits"};
         for(int i=0;i<2;++i)rows.push_back({std::string(limitLabels[i])+(limits.value(limitKeys[i],true)?": ON":": OFF"),"Pause then change this software limit / START resumes",{{"cmd","local_robot_limit"},{"key",limitKeys[i]},{"slot",i},{"enabled",!limits.value(limitKeys[i],true)}}});
         const char* gestureNames[]={"wave_left","wave_right","point_left","point_right","yes","no","happy","sad"};
         const char* gestureLabels[]={"Wave left","Wave right","Point left","Point right","Affirm","Refuse","Happy reaction","Sad reaction"};
-        for(int i=0;i<8;++i)rows.push_back({gestureLabels[i],"Official Pepper animation / base stopped / B cancels",{{"cmd","gesture"},{"name",gestureNames[i]}}});
+        auto official=state.value("official_animations",J::array());
+        for(int i=0;i<8;++i)if(std::find(official.begin(),official.end(),J(gestureNames[i]))!=official.end())rows.push_back({gestureLabels[i],"Official Pepper animation / base stopped / B cancels",{{"cmd","gesture"},{"name",gestureNames[i]}}});
         for(int c=0;c<2;++c)rows.push_back({c==0?"Top camera":"Bottom camera","Click the feed to toggle streaming",{{"cmd","local_camera"},{"camera",c}}});
         rows.push_back({network->depthStreaming?"Depth: ON":"Depth: OFF","Click the depth panel to toggle streaming",{{"cmd","local_depth"}}});
         rows.push_back({"Volume: "+std::to_string(speakerVolume)+"%","Cycle speaker volume 0 to 100% / 20% steps",{{"cmd","local_volume"}}});
-        rows.push_back({"Clear","Clear participant message and choices",{{"cmd","tablet"},{"text",""},{"choices",J::array()}}});
-        rows.push_back({tabletPreview?"Preview: ON":"Preview: OFF","Toggle the local preview / Pepper display stays active",{{"cmd","local_tablet_preview"}}});
         rows.push_back({fahrenheit?"F":"C","Switch Celsius / Fahrenheit",{{"cmd","local_temperature_unit"}}});
         rows.push_back({"Reconnect","Reconnect control, video and audio",{{"cmd","local_reconnect"}}});
         rows.push_back({"Exit TelePepper","Stop control and return Pepper to normal mode",{{"cmd","local_exit_normal"}}});
@@ -435,7 +429,7 @@ void main(){
         inputMessage=item.label;inputMessageUntil=milliseconds()+4000;
         if(cmd=="local_map"||cmd=="local_camera"||cmd=="local_depth"||cmd=="local_panel_lock"||(item.action.contains("enabled")&&cmd!="local_robot_limit")||cmd=="local_led_preset"){auto r=menuRect(menuIndex,items);crtBounds={r.x,r.y,r.w,r.h};crtAt=milliseconds();}
         if(cmd.find("local_layout")==0){
-            if(cmd=="local_layout"){if(!layoutEditing){if(maxLayers<15){inputMessage="Independent panels unavailable on this headset";return;}if(!roomLocked&&!placePanel())return;roomLocked=true;floating=true;saveWindowMode();startFlow.cancel();pendingGesture.cancel();network->requestStop();}layoutEditing=!layoutEditing;cardDrag=-1;saveLayout();inputMessage=layoutEditing?"Grip + trigger title / stick up-down depth, left-right size":"Layout ready / START resumes motion";}
+            if(cmd=="local_layout"){if(!layoutEditing){if(maxLayers<floating_layout::count+2){inputMessage="Independent panels unavailable on this headset";return;}if(!roomLocked&&!placePanel())return;roomLocked=true;floating=true;saveWindowMode();startFlow.cancel();pendingGesture.cancel();network->requestStop();}layoutEditing=!layoutEditing;cardDrag=-1;saveLayout();inputMessage=layoutEditing?"Grip + trigger title / stick up-down depth, left-right size":"Layout ready / START resumes motion";}
             else if(cmd=="local_layout_slot")layoutSlot=(layoutSlot+1)%3;
             else if(cmd=="local_layout_reset"){resetLayout();saveLayout();}
             else if(cmd=="local_layout_save"){layoutPresets[layoutSlot]=encodeLayout();saveLayout();inputMessage="Preset saved";}
@@ -492,7 +486,6 @@ void main(){
             if(!network->connected)inputMessage="Connect Pepper before playing an animation";
             else if(state.contains("official_animations")&&std::find(state["official_animations"].begin(),state["official_animations"].end(),item.action["name"])==state["official_animations"].end())inputMessage="This official animation is not installed on your Pepper";
             else if(!network->snapshot().value("gesture",std::string()).empty())inputMessage="Animation already playing / B stops";
-            else if(state.value("speech_gestures",nlohmann::json::object()).value("active",false))inputMessage="Auto gestures are playing / switch gestures OFF first";
             else if(startFlow.active())inputMessage="Starting: wait for calibration / B cancels";
             else if(network->armed&&!menuOpen){network->command(item.action);inputMessage="Animation: "+item.label+" / B stops";}
             else {beginStart(true);if(startFlow.active()){pendingGesture.begin(item.action.value("name",std::string()));inputMessage="Preparing animation: centre sticks and look forward / B cancels";}}
@@ -550,7 +543,7 @@ void main(){
         auto direction=rotate(loc.pose.orientation,{0,0,-1});pointerEnd={loc.pose.position.x+direction.x*2,loc.pose.position.y+direction.y*2,loc.pose.position.z+direction.z*2};
         auto target=panel_anchor::workspace(roomLocked,anchorPending,roomPanel);
         float u=0,v=0;pointerCard=-1;
-        if(floating&&!anchorPending){float nearest=1e10f;for(int i=0;i<13;++i){auto r=floating_layout::cards[i];auto p=floating_layout::world(target,cardPoses[i],panelWidth());float a,b;if(panel_anchor::hit(loc.pose,p,panelWidth()*r.w/W*cardScales[i],panelWidth()*r.h/W*cardScales[i],a,b)){float d=floating_layout::distance(loc.pose,p);if(d<nearest){nearest=d;pointerValid=true;pointerCard=i;pointer={r.x+a*r.w,r.y+b*r.h};}}}
+        if(floating&&!anchorPending){float nearest=1e10f;for(int i=0;i<floating_layout::count;++i){auto r=floating_layout::cards[i];auto p=floating_layout::world(target,cardPoses[i],panelWidth());float a,b;if(panel_anchor::hit(loc.pose,p,panelWidth()*r.w/W*cardScales[i],panelWidth()*r.h/W*cardScales[i],a,b)){float d=floating_layout::distance(loc.pose,p);if(d<nearest){nearest=d;pointerValid=true;pointerCard=i;pointer={r.x+a*r.w,r.y+b*r.h};}}}
             auto hp=helpPose(target);if(helpOpen&&panel_anchor::hit(loc.pose,hp,panelWidth()*HELP_W/W*HELP_SCALE,panelWidth()*H/W*HELP_SCALE,u,v)&&floating_layout::distance(loc.pose,hp)<nearest){pointerValid=true;pointerOnHelp=true;pointerCard=-1;pointer={u*HELP_W,v*H};}
         }else{pointerValid=panel_anchor::hit(loc.pose,target,panelWidth(),panelWidth()*H/W,u,v);
             if(!pointerValid&&helpOpen){pointerValid=panel_anchor::hit(loc.pose,helpPose(target),panelWidth()*HELP_W/W*HELP_SCALE,panelWidth()*H/W*HELP_SCALE,u,v);pointerOnHelp=pointerValid;}
@@ -882,7 +875,7 @@ void main(){
         using J=nlohmann::json;auto state=network->snapshot();auto t=state.value("telemetry",J::object());
         bool fresh=network->connected&&milliseconds()-network->lastSnapshot<750&&t.value("available",false)&&state.value("robot_mono",0.)-t.value("robot_mono",-100.)<.75;
         themedPanel(20,8,W-40,48,dashboard_theme::palette().surface,24);
-        text("TelePepper",36,14,.93f,.97f,1,2.3f);
+        text("TelePepper 2.5",36,14,.93f,.97f,1,2.3f);
         fitText(appVersion,36,38,222,.65f,.75f,.85f,1.f);
         auto readings=t.value("readings",J::object());bool batteryValid=fresh&&readings.contains("battery")&&readings["battery"].is_number();
         float battery=batteryValid?bounded(readings["battery"].get<float>(),0,1):0;
@@ -929,30 +922,6 @@ void main(){
         const auto map=dashboard_layout::lidar;auto mapCard=dashboard_layout::lidarCard;surfaceCard(mapCard.x,mapCard.y,mapCard.w,mapCard.h);fitText("Lidar",mapCard.x+23,mapCard.y+10,mapCard.w-32,.6f,.85f,.9f,ui_type::heading);
         drawScaleX=map.w/630;drawOffsetX=map.x-490*drawScaleX;drawScaleY=map.h/473;drawOffsetY=map.y-137*drawScaleY;if(showLaserMap&&fresh){KeepColors original(preserveColors);drawLaserMap();}drawScaleX=drawScaleY=1;drawOffsetX=drawOffsetY=0;
         if(!showLaserMap||!fresh){drawCrt(map.x,map.y,map.w,map.h,.55f);fitText(!network->connected?"ROBOT OFFLINE":!showLaserMap?"LIDAR OFF":"Waiting / stale feed",map.x+10,map.y+30,map.w-20,1,.7f,.35f,ui_type::body);fitText("Click to enable",map.x+10,map.y+54,map.w-20,.65f,.8f,.86f,ui_type::secondary);}
-        {
-            const auto preview=dashboard_layout::tablet;float px=preview.x+23,py=preview.y;
-            surfaceCard(preview.x,py,preview.w,preview.h);fitText("Tablet",px,py+9,preview.w-35,.85f,.88f,.93f,ui_type::heading);
-            auto content=state.value("tablet",J::object());auto delivery=state.value("tablet_display",J::object());
-            bool shown=fresh&&delivery.value("connected",false)&&delivery.value("revision",-1)==content.value("revision",0);
-            // A small confirmation dot replaces the redundant delivery wording.
-            panel(preview.x+preview.w-18,py+14,6,6,shown?.3f:1.f,shown?.8f:.65f,.55f,3);
-            KeepColors original(preserveColors);const auto screen=dashboard_layout::tabletScreen;
-            panel(screen.x,screen.y,screen.w,screen.h,26/255.f,26/255.f,26/255.f,3);
-            drawAlpha=tabletPreview&&fresh?content.value("opacity",1.f):1.f;
-            std::string reaction=content.value("reaction",std::string());
-            if(!tabletPreview||!fresh){drawCrt(screen.x,screen.y,screen.w,screen.h,.55f);centeredText(!network->connected?"ROBOT OFFLINE":!tabletPreview?"Preview off":"Waiting / stale feed",{screen.x,screen.y,screen.w,screen.h},.8f,.9f,1,ui_type::body);}
-            else if(!reaction.empty())drawReaction(reaction,screen);
-            else{
-                std::string message=content.value("text",std::string());
-                std::vector<std::string> lines;size_t pos=0;
-                while(pos<message.size()&&lines.size()<4){size_t n=std::min(size_t(24),message.size()-pos);if(pos+n<message.size()){size_t space=message.rfind(' ',pos+n);if(space>pos&&space!=std::string::npos)n=space-pos;}lines.push_back(message.substr(pos,n));pos+=n;while(pos<message.size()&&message[pos]==' ')++pos;}
-                if(pos<message.size()&&!lines.empty())lines.back()+="...";
-                float step=13,y=screen.y+(screen.h-lines.size()*step)*.5f;
-                for(const auto& line:lines){centeredText(line,{screen.x+6,y,screen.w-12,step},.95f,.96f,1,ui_type::secondary);y+=step;}
-                if(content.contains("choices")&&content["choices"].is_array()){int n=content["choices"].size();float step=n?(screen.w-12)/n:32;for(int i=0;i<n;++i){float cy=screen.y+screen.h-16;panel(screen.x+6+i*step,cy,step-2,12,.17f,.28f,.34f,2);fitText(content["choices"][i].get<std::string>(),screen.x+8+i*step,cy+2,step-6,.85f,.96f,1,.8f);}}
-            }
-            drawAlpha=1;
-        }
         drawComparison(tracking);
         const auto thermal=dashboard_layout::temperatures;surfaceCard(thermal.x,thermal.y,thermal.w,thermal.h);text("Joint temperatures",thermal.x+23,thermal.y+7,.85f,.88f,.93f,ui_type::heading);
         const char* names[]={"HeadYaw","HeadPitch","HipRoll","HipPitch","KneePitch","LShoulderPitch","LShoulderRoll","LElbowYaw","LElbowRoll","LWristYaw","RShoulderPitch","RShoulderRoll","RElbowYaw","RElbowRoll","RWristYaw","LHand","RHand","WheelFL","WheelFR","WheelB"};
@@ -972,17 +941,13 @@ void main(){
         std::string temperatureLegend=fresh?"Temperature colour key / red = robot thermal alert":"STALE / waiting for robot sensors";
         if(thermalHover>=0)temperatureLegend=std::string(names[thermalHover])+(fahrenheit?" / temperature in Fahrenheit":" / temperature in Celsius");
         fitText(temperatureLegend,thermal.x+12,thermal.y+thermal.h-18,thermal.w-24,.75f,.8f,.85f,ui_type::secondary);
-        auto tablet=state.value("tablet_display",J::object());bool delivered=fresh&&tablet.value("connected",false)&&tablet.value("revision",-1)==state.value("tablet",J::object()).value("revision",0);
-        std::string tabletState=delivered?"Tablet: displayed":tablet.value("connected",false)?"Tablet: updating":"Tablet: disconnected";
-        if(state.contains("participant_response")&&state["participant_response"].is_object()&&state["participant_response"].value("revision",-1)==state.value("tablet",J::object()).value("revision",0))tabletState+=" / answer: "+state["participant_response"].value("value",std::string());
-        
         const char* groups[]={"Motion","Voice & phrases","Tablet","View","Connection","Pose offsets","Appearance"};
         const auto& xs=dashboard_layout::x;const auto& ws=dashboard_layout::width;
-        for(int g=0;g<7;++g){if(g==3||g==5)continue;auto tint=dashboard_theme::section[g];surfaceCard(xs[g],dashboard_layout::groupY[g],ws[g],dashboard_layout::groupHeight[g],tint);fitText(groups[g],xs[g]+23,dashboard_layout::groupY[g]+8,ws[g]-35,.85f,.88f,.93f,ui_type::heading);}
+        for(int g=0;g<7;++g){if(g==2||g==3||g==5)continue;auto tint=dashboard_theme::section[g];surfaceCard(xs[g],dashboard_layout::groupY[g],ws[g],dashboard_layout::groupHeight[g],tint);fitText(groups[g],xs[g]+23,dashboard_layout::groupY[g]+8,ws[g]-35,.85f,.88f,.93f,ui_type::heading);}
         fitText("OFFICIAL ANIMATIONS / B cancels",xs[0]+10,dashboard_layout::groupY[0]+183,ws[0]-20,.55f,.85f,.75f,ui_type::secondary);
         pixelLine(xs[1]+12,dashboard_layout::groupY[1]+136,xs[1]+ws[1]-12,dashboard_layout::groupY[1]+136,1,.21f,.25f,.34f);
         fitText("PHRASES",xs[1]+12,dashboard_layout::groupY[1]+139,ws[1]-24,.7f,.75f,.9f,ui_type::secondary);
-        if(layoutEditing){for(int i=0;i<13;++i){auto r=floating_layout::cards[i];pixelLine(r.x+5,r.y+2,r.x+r.w-5,r.y+2,3,.25f,.65f,1);if(i<11)panel(r.x+r.w*.5f-20,r.y+4,40,3,.4f,.75f,1,1.5f);}}
+        if(layoutEditing){for(int i=0;i<floating_layout::count;++i){auto r=floating_layout::cards[i];pixelLine(r.x+5,r.y+2,r.x+r.w-5,r.y+2,3,.25f,.65f,1);if(i<floating_layout::count-2)panel(r.x+r.w*.5f-20,r.y+4,40,3,.4f,.75f,1,1.5f);}}
         auto items=menuActions();menuIndex=std::max(0,std::min(menuIndex,int(items.size())-1));
         const std::string playingAnimation=state.value("gesture",std::string());
         for(int i=0;i<(int)items.size();++i){auto r=menuRect(i,items);bool selected=(menuOpen||pointerGrip.held)&&i==menuIndex&&(!pointerGrip.held||(pointerValid&&menuHit(pointer.x,pointer.y)==i));int g=menuGroup(items[i]);bool stop=items[i].action.value("cmd",std::string())=="local_stop";
@@ -1032,7 +997,7 @@ void main(){
         if(menuOpen&&milliseconds()>=inputMessageUntil)message=items[menuIndex].detail+" | "+network->status();
         fitText(message,36,986,816,.95f,.8f,.55f,ui_type::secondary);
         std::string audio=network->ttsVoice?voiceStatus:network->talk?"MIC LIVE":network->audioStatus();
-        fitText(audio+" | "+tabletState,870,986,W-902,.6f,.85f,.86f,ui_type::secondary);
+        fitText(audio,870,986,W-902,.6f,.85f,.86f,ui_type::secondary);
         if(milliseconds()-crtAt<320){float strength=.18f*std::max(0.f,1.f-float((milliseconds()-crtAt)/320.));drawCrt(crtBounds[0],crtBounds[1],crtBounds[2],crtBounds[3],strength);}
         std::string hovered;
         if(!pointerOnHelp&&pointerGrip.held&&pointerValid){int hit=menuHit(pointer.x,pointer.y);if(hit>=0){auto cmd=items[hit].action.value("cmd",std::string());if(cmd=="local_layout"||cmd=="local_help")hovered=items[hit].label;}}
@@ -1173,9 +1138,9 @@ void main(){
             quad.layerFlags=XR_COMPOSITION_LAYER_BLEND_TEXTURE_SOURCE_ALPHA_BIT;quad.space=roomLocked&&!anchorPending?local:viewSpace;quad.eyeVisibility=XR_EYE_VISIBILITY_BOTH;quad.subImage.swapchain=swapchain;quad.subImage.imageRect.extent={W,H};quad.pose=panel_anchor::workspace(roomLocked,anchorPending,roomPanel);quad.size={panelWidth(),panelWidth()*H/W};layer=(XrCompositionLayerBaseHeader*)&quad;}
         XrCompositionLayerPassthroughFB room{XR_TYPE_COMPOSITION_LAYER_PASSTHROUGH_FB};room.layerHandle=passthroughLayer;room.space=XR_NULL_HANDLE;
         XrCompositionLayerQuad help{XR_TYPE_COMPOSITION_LAYER_QUAD};
-        std::array<XrCompositionLayerQuad,13> panels{};std::array<const XrCompositionLayerBaseHeader*,17> layers{};uint32_t count=0;
+        std::array<XrCompositionLayerQuad,floating_layout::count> panels{};std::array<const XrCompositionLayerBaseHeader*,17> layers{};uint32_t count=0;
         if(state.shouldRender&&passthroughLayer)layers[count++]=(XrCompositionLayerBaseHeader*)&room;
-        if(layer){if(floating&&!anchorPending){for(int i=0;i<13;++i){auto r=floating_layout::cards[i];auto& p=panels[i];p=quad;p.pose=floating_layout::world(quad.pose,cardPoses[i],panelWidth());p.size={panelWidth()*r.w/W*cardScales[i],panelWidth()*r.h/W*cardScales[i]};p.subImage.imageRect.offset={int(r.x),H-int(r.y+r.h)};p.subImage.imageRect.extent={int(r.w),int(r.h)};layers[count++]=(XrCompositionLayerBaseHeader*)&p;}}else layers[count++]=layer;}
+        if(layer){if(floating&&!anchorPending){for(int i=0;i<floating_layout::count;++i){auto r=floating_layout::cards[i];auto& p=panels[i];p=quad;p.pose=floating_layout::world(quad.pose,cardPoses[i],panelWidth());p.size={panelWidth()*r.w/W*cardScales[i],panelWidth()*r.h/W*cardScales[i]};p.subImage.imageRect.offset={int(r.x),H-int(r.y+r.h)};p.subImage.imageRect.extent={int(r.w),int(r.h)};layers[count++]=(XrCompositionLayerBaseHeader*)&p;}}else layers[count++]=layer;}
         if(layer&&helpOpen){help=quad;help.pose=helpPose(quad.pose);help.size={panelWidth()*HELP_W/W*HELP_SCALE,panelWidth()*H/W*HELP_SCALE};help.subImage.imageRect.offset={W,0};help.subImage.imageRect.extent={HELP_W,H};layers[count++]=(XrCompositionLayerBaseHeader*)&help;}
         if(layer&&floating&&!anchorPending){XrSpaceLocation head{XR_TYPE_SPACE_LOCATION};if(XR_SUCCEEDED(xrLocateSpace(viewSpace,quad.space,frameTime,&head))&&(head.locationFlags&XR_SPACE_LOCATION_POSITION_VALID_BIT)){auto start=layers.begin()+(state.shouldRender&&passthroughLayer?1:0);std::stable_sort(start,layers.begin()+count,[&](const XrCompositionLayerBaseHeader* a,const XrCompositionLayerBaseHeader* b){auto pa=((const XrCompositionLayerQuad*)a)->pose.position,pb=((const XrCompositionLayerQuad*)b)->pose.position;return dot(sub(pa,head.pose.position),sub(pa,head.pose.position))>dot(sub(pb,head.pose.position),sub(pb,head.pose.position));});}}
         XrCompositionLayerQuad beam{XR_TYPE_COMPOSITION_LAYER_QUAD};
@@ -1215,7 +1180,7 @@ public:
         for(const auto& extension:available)if(std::strcmp(extension.extensionName,XR_FB_PASSTHROUGH_EXTENSION_NAME)==0){extensions.push_back(XR_FB_PASSTHROUGH_EXTENSION_NAME);passthroughAvailable=true;}
         XrInstanceCreateInfoAndroidKHR android{XR_TYPE_INSTANCE_CREATE_INFO_ANDROID_KHR};android.applicationVM=app->activity->vm;android.applicationActivity=app->activity->clazz;
         XrInstanceCreateInfo info{XR_TYPE_INSTANCE_CREATE_INFO};info.next=&android;std::strcpy(info.applicationInfo.applicationName,"TelePepper");info.applicationInfo.applicationVersion=1;info.applicationInfo.apiVersion=XR_MAKE_VERSION(1,0,34);info.enabledExtensionCount=(uint32_t)extensions.size();info.enabledExtensionNames=extensions.data();XR(xrCreateInstance(&info,&instance));
-        XrSystemGetInfo get{XR_TYPE_SYSTEM_GET_INFO};get.formFactor=XR_FORM_FACTOR_HEAD_MOUNTED_DISPLAY;XR(xrGetSystem(instance,&get,&system));XrSystemProperties properties{XR_TYPE_SYSTEM_PROPERTIES};XR(xrGetSystemProperties(instance,system,&properties));maxLayers=properties.graphicsProperties.maxLayerCount;if(maxLayers<15)floating=false;initGraphics();initPassthrough();initInput();
+        XrSystemGetInfo get{XR_TYPE_SYSTEM_GET_INFO};get.formFactor=XR_FORM_FACTOR_HEAD_MOUNTED_DISPLAY;XR(xrGetSystem(instance,&get,&system));XrSystemProperties properties{XR_TYPE_SYSTEM_PROPERTIES};XR(xrGetSystemProperties(instance,system,&properties));maxLayers=properties.graphicsProperties.maxLayerCount;if(maxLayers<floating_layout::count+2)floating=false;initGraphics();initPassthrough();initInput();
         __android_log_print(ANDROID_LOG_INFO,"TelePepper","OpenXR graphics, controller actions and body tracker initialized");
         showLaserMap=extra("lidar_enabled")!="false";network.reset(new Network(extra("host"),extra("token")));network->setDepthStreaming(extra("depth_streaming")=="true");network->setCameraStreaming(0,extra("top_streaming")!="false");network->setCameraStreaming(1,extra("bottom_streaming")!="false");network->start();
         while(!app->destroyRequested){android_poll_source* source=nullptr;int events;while(ALooper_pollOnce(running?0:50,nullptr,&events,(void**)&source)>=0){if(source)source->process(app,source);if(app->destroyRequested)break;}

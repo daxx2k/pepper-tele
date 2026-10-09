@@ -17,7 +17,7 @@ int main(){
     auto card=initial(4),inView=world(follow,card,1.25f),inRoom=world(root,card,1.25f);
     auto viewRoundTrip=relative(follow,inView,1.25f),roomRoundTrip=relative(root,inRoom,1.25f);
     assert(near(viewRoundTrip.position.x,roomRoundTrip.position.x)&&near(viewRoundTrip.position.z,roomRoundTrip.position.z));
-    for(int i=0;i<13;++i){
+    for(int i=0;i<count;++i){
         auto r=cards[i];assert(r.x>=0&&r.y>=0&&r.x+r.w<=1400&&r.y+r.h<=1060);
         auto p=initial(i),w=world(root,p,1.25f),back=relative(root,w,1.25f);
         assert(near(p.position.x,back.position.x)&&near(p.position.y,back.position.y)&&near(p.position.z,back.position.z));
@@ -28,5 +28,5 @@ int main(){
         auto saved=relative(root,dragged,1.25f);auto restored=world(root,saved,1.25f);assert(near(restored.position.y,dragged.position.y));
     }
     XrPosef bad{{0,0,0,0},{0,0,0}};assert(!valid(bad));bad={{0,0,0,2},{0,0,0}};assert(valid(bad)&&near(bad.orientation.w,1));bad.position.x=INFINITY;assert(!valid(bad));bad.position.x=11;assert(!valid(bad));
-    std::puts("PASS: 13 atlas crops, rotated workspace round trips, ray mapping, no-jump 3D grabs and invalid preset poses");
+    std::puts("PASS: tablet-free atlas crops, rotated workspace round trips, ray mapping, no-jump 3D grabs and invalid preset poses");
 }

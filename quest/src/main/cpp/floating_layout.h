@@ -5,7 +5,8 @@
 #include <limits>
 namespace floating_layout {
 using dashboard_layout::Rect;
-constexpr std::array<Rect,13> cards{{dashboard_layout::fusion,dashboard_layout::comparison,dashboard_layout::temperatures,{20,794,440,156},dashboard_layout::depthCard,dashboard_layout::lidarCard,dashboard_layout::tablet,{960,64,420,280},{960,356,420,292},{960,806,420,144},{960,660,420,134},{20,0,1360,56},{20,958,1360,102}}};
+constexpr int count=11;
+constexpr std::array<Rect,count> cards{{dashboard_layout::fusion,dashboard_layout::comparison,dashboard_layout::temperatures,{20,794,440,156},dashboard_layout::depthCard,dashboard_layout::lidarCard,{960,64,420,280},{960,356,420,292},{960,660,420,134},{20,0,1360,56},{20,958,1360,102}}};
 inline XrPosef initial(int i){auto r=cards.at(i);return {{0,0,0,1},{(r.x+r.w*.5f)/1400.f-.5f,(.5f-(r.y+r.h*.5f)/1060.f)*1060.f/1400.f,0}};}
 // Positions are stored in workspace-width units so global resizing keeps the arrangement.
 inline XrPosef world(XrPosef root,XrPosef relative,float width){relative.position.x*=width;relative.position.y*=width;relative.position.z*=width;return panel_anchor::compose(root,relative);}

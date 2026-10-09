@@ -12,13 +12,13 @@ constexpr float groupY[]={64,356,806,0,794,0,660};
 constexpr float groupHeight[]={280,292,144,0,156,0,134};
 constexpr Rect fusion{480,64,460,736};
 constexpr Rect fusionImage{488,104,444,588};
-constexpr Rect cameras[]={{488,102,444,333},{488,455,444,333},{488,838,140,105}};
+constexpr Rect cameras[]={{488,102,444,333},{488,455,444,333},{488,838,208,105}};
 constexpr float cameraGap=20,cameraBlendPixels=8,cameraCornerRadius=8;
-constexpr Rect lidar{642,838,140,105};
+constexpr Rect lidar{756,838,140,105};
 constexpr Rect tablet{792,812,148,138};
 // Pepper tablet is 1280x800: landscape 16:10, independent of its containing card.
 constexpr Rect tabletScreen{800,854,132,82.5f};
-constexpr Rect depthCard{480,812,156,138},lidarCard{640,812,144,138};
+constexpr Rect depthCard{480,812,224,138},lidarCard{712,812,228,138};
 constexpr Rect comparison{20,64,440,455};
 constexpr Rect temperatures{20,529,440,252};
 constexpr Rect temperatureUnit{temperatures.x+temperatures.w-80,temperatures.y+4,70,24};

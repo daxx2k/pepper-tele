@@ -49,7 +49,7 @@ public:
     std::atomic<bool> connected{false}, armed{false};
     std::atomic<bool> ttsVoice{true},depthStreaming{false};
     std::atomic<bool> topStreaming{true},bottomStreaming{true};
-    std::atomic<int> voiceMode{2}; // Default Piper / Cori; 0 Pepper TTS, 1 live microphone
+    std::atomic<int> voiceMode{0}; // Default Piper / Cori; 0 Pepper TTS, 1 live microphone
     std::atomic<unsigned> voiceCancellation{0};
     std::atomic<bool> listenAudio{false}, talk{false}, audioFocus{false}, fullDuplex{false};
     std::atomic<int> camera{0}, view{0};

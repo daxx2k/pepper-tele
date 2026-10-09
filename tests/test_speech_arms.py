@@ -45,23 +45,36 @@ class SpeechArmTests(unittest.TestCase):
         names=[c.args[0] for c in self.robot.motion.setAngles.call_args_list]
         self.assertIn(tp.NAMES[2:12],names);self.assertIn(tp.NAMES[12:],names)
 
-    def test_clips_only_contain_arm_curves_with_gentle_first_key(self):
-        allowed=set(tp.NAMES[2:])
-        with zipfile.ZipFile(ROOT/'pepper/bridge/telepepper-speaking.pkg') as z:
-            for path in PATHS:
-                root=ET.fromstring(z.read(path.split('/')[-1]))
-                self.assertEqual(set(c.tag for c in root),{'ActuatorCurve'})
-                for curve in root:
-                    self.assertIn(curve.get('actuator'),allowed)
-                    self.assertGreaterEqual(min(float(k.get('frame'))/float(curve.get('fps')) for k in curve.findall('Key')),.75)
-            self.assertIn(b'SoftBank',z.read('COPYING'))
+    def test_portable_clips_only_contain_arm_joints_and_gentle_entry(self):
+        from speech_clip_data import CURVES
+        from speech_player25 import SpeechPlayer25
+        for path,(names,angles,times) in CURVES.items():
+            self.assertEqual(set(names),set(tp.NAMES[2:]))
+            for keys,stamps in zip(angles,times):
+                self.assertEqual(len(keys),len(stamps))
+                self.assertGreaterEqual(min(stamps),.75)
+                self.assertEqual(stamps,sorted(stamps))
+            motion=Mock();SpeechPlayer25(motion).run(path)
+            motion.angleInterpolation.assert_called_once_with(names,angles,times,True,_async=True)
+
+    def test_portable_cancel_waits_for_arm_resource_stop_acknowledgement(self):
+        from speech_player25 import SpeechPlayer25
+        motion=Mock();ack=motion.killTasksUsingResources.return_value
+        ack.isFinished.return_value=False
+        future=SpeechPlayer25(motion).run(PATHS[0]);future.cancel()
+        self.assertFalse(future.isFinished())
+        names=motion.killTasksUsingResources.call_args.args[0]
+        self.assertEqual(set(names),set(tp.NAMES[2:]))
+        self.assertNotIn('HeadYaw',names);self.assertNotIn('HipPitch',names)
+        ack.isFinished.return_value=True;self.assertTrue(future.isFinished())
+        ack.value.assert_called_once_with(0)
 
     def test_optional_package_failure_is_contained(self):
         session=Mock();manager=session.service.return_value
         manager.hasPackage.return_value=False
         manager.install.return_value.value.side_effect=RuntimeError('package failed')
         self.assertFalse(install_package(session,str(ROOT/'pepper/bridge/telepepper-speaking.pkg')))
-        session.service.assert_called_once_with('PackageManager')
+        session.service.assert_not_called()
 
     def test_missing_optional_package_does_not_call_sdk(self):
         session=Mock()
@@ -160,7 +173,7 @@ class SpeechArmTests(unittest.TestCase):
         a,b=socket.socketpair()
         try:
             woz.play_piper(a,io.BytesIO(b'\0\0'*320),{'session':'pilot','piper_bytes':640,'text':'Hello.'},'peer')
-            self.assertIn(b'played',b.recv(512));self.assertEqual(woz.tablet['text'],'Hello.')
+            self.assertIn(b'played',b.recv(512));self.assertEqual(woz.tablet['text'],'')
             self.assertEqual(self.arms.phase,'idle')
         finally:a.close();b.close();woz.audio_socket.close()
 

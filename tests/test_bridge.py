@@ -1162,6 +1162,7 @@ class IntegrationTests(unittest.TestCase):
 
     def test_tablet_fades_expires_once_and_new_content_restarts_timer(self):
         woz=self.service.woz
+        woz.speech_on_tablet=True  # Exercise retained wire compatibility explicitly.
         with patch.object(woz,'clock',return_value=10.):
             woz.action({'cmd':'tablet','reaction':'smile'})
             rev=woz.tablet['revision']
@@ -1187,6 +1188,7 @@ class IntegrationTests(unittest.TestCase):
 
     def test_tablet_reactions_replace_content_and_clear_on_caption(self):
         woz=self.service.woz
+        woz.speech_on_tablet=True  # Exercise retained wire compatibility explicitly.
         self.assertIn('How are you?',woz.phrases)
         self.assertNotIn('How do you feel?',woz.phrases)
         for name in ('smile','laugh','love','surprise','sad','wink','angry'):
@@ -1203,6 +1205,7 @@ class IntegrationTests(unittest.TestCase):
 
     def test_speech_captions_toggle_and_clear_stale_choices(self):
         woz=self.service.woz
+        woz.speech_on_tablet=True  # Exercise retained wire compatibility explicitly.
         woz.action({'cmd':'tablet','text':'Question','choices':['Yes','No']})
         old=woz.tablet['revision']
         woz.action({'cmd':'say','text':'Hello'})

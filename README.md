@@ -1,8 +1,6 @@
-# TelePepper
+# TelePepper for Pepper NAOqi 2.5
 
-Native Quest teleoperation and Wizard of Oz for Pepper: head and arm tracking, joystick base control, camera feeds, speech, tablet reactions and LEDs.
-
-**Version 0.3.4-test — experimental prerelease.** This is a development project for operator-supervised evaluation. Automated checks do not prove physical latency, pose matching or compatibility on another robot.
+**Version 0.3.4-pepper25-test — experimental prerelease.**
 
 ## Versions and downloads
 
@@ -15,36 +13,24 @@ This repository contains two separate variants. Use the `main` branch for Pepper
 
 A computer is only needed for initial APK installation. During operation, Quest connects directly to the robot head. No PC relay, cloud TTS API or firmware upgrade is required. Quest Pro has not been validated. Sub-40 ms physical motion latency has not been established.
 
-## Install and operate
 
-- [Pepper 2.9 quick start](docs/QUICKSTART.md)
-- [Controls, Help and troubleshooting](docs/HELP.md)
-- [Build from source](docs/BUILD.md)
-- [Validation record](docs/VALIDATION.md)
-- [Privacy guidance](docs/PRIVACY.md)
 
-Install the Quest APK using Meta Quest Developer Hub (MDH). Install the tablet APK through ADB. On Pepper's tablet, CONNECT becomes START once connected. START prepares the robot; Quest START or holding A + X calibrates and engages tracking. B stops motion. Exit TelePepper confirms STOP, restores normal autonomy and ends the head service. The bridge does not start at robot boot.
+Quest 3/3S connects directly to the Pepper head. There is no runtime PC, Pepper Android APK, tablet preview, caption or emoji panel. This is a separate fork, with a distinct Quest application ID: it.telepepper.quest25.
 
-Piper/Cori is the 2.9 default voice; Pepper TTS and live microphone are also available. Automatic speech gestures start OFF. Enable Gestures, then release the left push-to-talk grip to request an arm gesture while tracking is active. Head and base remain controlled independently. Both grips toggle the mode. Help is a companion panel, and app/head-service versions are visible for diagnosis.
+Start with [QUICKSTART](docs/QUICKSTART.md). Physical compatibility with a NAOqi 2.5 robot is not yet verified. This package is for a supervised trial, not a production compatibility claim.
 
-## Architecture
+CONNECT in Quest settings checks NAOqi 2.5 and qi/Pillow, installs head scripts in /home/nao/telepepper25 when needed, creates pairing and starts disarmed. SSH passwords stay in private Quest storage, encrypted using Android Keystore. No robot boot hook or systemd dependency is added.
 
-- `quest/`: native OpenXR C++ dashboard/body tracking and Android speech integration.
-- `pepper/tablet/`: Android configuration, pairing, deployment and participant display (2.9 only).
-- `pepper/bridge/`: Python 2.7-compatible NAOqi motion, media and Wizard of Oz services.
-- `config/android/`: shared Android UI and lifecycle components.
-- `console/`: optional browser console.
-- `tests/`: backend and standalone native regression checks.
-- `tools/`: build, private setup, privacy checks and release packaging.
+Hold A + X in VR to calibrate, prepare and engage tracking. STOP pauses and returns gently to neutral; B is immediate stop. Exit TelePepper confirms stopping, restores normal autonomy and ends the service. A clean Exit is not restarted. Wi-Fi loss stops motion without automatically restoring autonomy.
 
-Control, pose, video and audio use separate connections. Motion consumes the latest pose rather than queueing older targets. Measured-pose engagement, tracking validity, STOP, watchdogs and body collision protection remain part of control. Lidar is a local sensor/odometry trace, not SLAM or a clearance guarantee. Recording and research-session export are deferred.
+Defaults: obstacle margins 0.40 m orthogonal / 0.10 m tangential, joint/speed limits ON, measured-pose engagement, 180 ms watchdog. Physical latency/alignment on Pepper 2.5 remain unmeasured.
 
-## Private configuration
+Only matching official animations confirmed in the installed library are selectable; the 2.9 animation package is not installed. Some robots may offer no matching clips. Default voice: Pepper TTS, volume 50, Listen OFF. Live microphone and optional Piper/Cori remain available.
 
-Use your own robot addresses, SSH credentials and pairing code. Keep local settings, device captures, recordings and signing keys outside Git. Optional developer setup uses ignored `.local/pepper.properties`; see `config/pepper.properties.example`. Release APKs contain no lab pairing code or SSH password.
+Build with JDK 17, SDK 34, NDK 27.2.12479018 and CMake 3.22.1: tools/build.ps1 -Target Quest. Output: dist/TelePepper-Quest25.apk. Development tests use requirements-dev.txt on the PC, never on the robot.
 
-Run `python tools/privacy_check.py` before sharing source. GitHub APKs are debug-signed evaluation builds; rebuilding with another signing key may prevent in-place updates. No private signing keys are published.
+Original code is Apache 2.0; see LICENSE, NOTICE and third-party notices. No publication was performed. The Android-Pepper project is unchanged.
 
-## License
+Automatic speech gestures use arms-only keyframe derivatives of the attributed official Pepper Core Animations through ALMotion. They do not require the 2.9 package manager. App and head-service versions appear in the Quest dashboard/Help.
 
-Original TelePepper code is Apache 2.0: see [LICENSE](LICENSE) and [NOTICE](NOTICE). Third-party libraries, fonts and official animation derivatives retain their own terms; see [dependency notices](docs/THIRD-PARTY.md).
+Automatic speech gestures use arms-only keyframe derivatives of attributed Pepper Core Animations through ALMotion. No 2.9 package-manager dependency is needed. App/head versions appear in Quest and Help.

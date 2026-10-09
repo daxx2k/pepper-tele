@@ -49,7 +49,7 @@ class WoZ(object):
         self.camera, self.view = 0, 'panel'
         self.tablet = {'revision': 0, 'text': '', 'choices': []}
         self.tablet_fade_at = None
-        self.speech_on_tablet = True
+        self.speech_on_tablet = False
         self.speaker_volume = 50
         self.last_response = None
         self.tablet_seen = None
