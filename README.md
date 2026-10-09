@@ -1,5 +1,7 @@
 # TelePepper
 
+[Download the 0.3.4 experimental release](https://github.com/daxx2k/pepper-tele/releases/tag/v0.3.4-test) · [Pepper 2.5 branch](https://github.com/daxx2k/pepper-tele/tree/pepper25)
+
 Native Quest teleoperation and Wizard of Oz for Pepper: head and arm tracking, joystick base control, camera feeds, speech, tablet reactions and LEDs.
 
 **Version 0.3.4-test — experimental prerelease.** This is a development project for operator-supervised evaluation. Automated checks do not prove physical latency, pose matching or compatibility on another robot.
