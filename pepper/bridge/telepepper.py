@@ -175,6 +175,10 @@ class Robot(object):
             self.available_animations=set(p for p in installed if not p.startswith(('telepepper-anims/','telepepper-speaking/')))
             self.available_animations.update(self.animation_player.resources)
         except Exception as exc:print('Official animation library unavailable: '+str(exc))
+        from speech_player import SpeechPlayer
+        from speech_clip_data import CURVES
+        self.speech_animation_player=SpeechPlayer(self.motion)
+        self.available_animations.update(CURVES)
         self.base_collision_enabled = bool(self.motion.getExternalCollisionProtectionEnabled('Move'))
         self.life = self.session.service('ALAutonomousLife')
         self.video = self.session.service('ALVideoDevice')

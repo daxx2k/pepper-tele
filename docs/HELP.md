@@ -103,3 +103,5 @@ The Quest header shows the installed app version and build number. Help shows bo
 Dance uses the unmodified headbang clip from SoftBank Robotics Robot Focus and Android Lifecycle. Funny is the official Funny_01 gesture, not a claimed laugh animation. The other new clips come from Pepper Core Animations.
 
 Bundled gestures use registered package paths with validated XML file headers; PTT should not pause tracking merely because speech gestures are enabled. A motor, tracking or connection fault still triggers STOP.
+
+Automatic speech gestures use native arm-only interpolation on both variants. Head, torso and wheels are excluded from those resources; existing tracking and STOP checks remain active.

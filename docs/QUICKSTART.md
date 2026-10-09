@@ -1,4 +1,4 @@
-# TelePepper for Pepper 2.9 - 0.3.7-test
+# TelePepper for Pepper 2.9 - 0.3.8-test
 
 This package contains the Pepper Android tablet app and the native Quest app. During use, Quest communicates directly with the robot head; a PC is needed only for initial installation. Use your own robot credentials and pairing code.
 

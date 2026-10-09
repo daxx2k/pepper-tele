@@ -7,6 +7,7 @@ import xml.etree.ElementTree as ET
 ROOT=Path(__file__).resolve().parents[1]
 sys.path.insert(0,str(ROOT/'pepper/bridge'))
 from official_animations import PACKAGE_VERSION
+from qianim_compat import compatible
 
 
 def main():
@@ -32,7 +33,7 @@ def main():
         archive.writestr('telepepper-anims.pml',ET.tostring(package))
         archive.write(ROOT/'third_party/PEPPER-CORE-ANIMS-LICENSE.txt','COPYING')
         archive.write(ROOT/'third_party/PEPPER-DANCE-LICENSE.txt','DANCE-COPYING')
-        for p in files:archive.write(p,p.name)
+        for p in files:archive.writestr(p.name,compatible(p.read_bytes()))
     print('Packaged %d official clips, version %s'%(len(files),PACKAGE_VERSION))
 
 

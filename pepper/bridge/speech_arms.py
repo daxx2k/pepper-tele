@@ -107,7 +107,7 @@ class SpeechArms(object):
             if self.robot.simulate:
                 self.phase = 'playing'
             else:
-                self.future = self.robot.animation_player.run(PATHS[self.index % len(PATHS)], _async=True)
+                self.future = getattr(self.robot,'speech_animation_player',self.robot.animation_player).run(PATHS[self.index % len(PATHS)], _async=True)
                 self.index += 1
                 self.phase = 'playing'
             self.began = now

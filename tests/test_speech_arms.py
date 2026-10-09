@@ -38,6 +38,14 @@ class SpeechArmTests(unittest.TestCase):
     def begin(self):
         self.arms.set_enabled(True);self.arms.begin(5.)
 
+    def test_real_speech_player_is_selected_without_using_manual_player(self):
+        self.hardware();self.begin()
+        self.robot.speech_animation_player=Mock()
+        self.robot.speech_animation_player.run.return_value=self.clip
+        self.assertTrue(self.arms.poll(tp.NAMES))
+        self.robot.speech_animation_player.run.assert_called_once_with(PATHS[0],_async=True)
+        self.robot.animation_player.run.assert_not_called()
+
     def test_default_off_does_not_claim_joints(self):
         self.hardware();self.arms.begin(5.)
         self.robot.apply(list(self.robot.previous),[0,0,0],.02)
@@ -274,5 +282,29 @@ class SpeechArmTests(unittest.TestCase):
             woz.begin_speech_gestures(5.,'piper');self.assertFalse(self.arms.speaking)
         finally:woz.audio_socket.close()
 
+
+    def test_portable_clips_only_contain_arm_joints_and_gentle_entry(self):
+        from speech_clip_data import CURVES
+        from speech_player import SpeechPlayer
+        for path,(names,angles,times) in CURVES.items():
+            self.assertEqual(set(names),set(tp.NAMES[2:]))
+            for keys,stamps in zip(angles,times):
+                self.assertEqual(len(keys),len(stamps))
+                self.assertGreaterEqual(min(stamps),.75)
+                self.assertEqual(stamps,sorted(stamps))
+            motion=Mock();SpeechPlayer(motion).run(path)
+            motion.angleInterpolation.assert_called_once_with(names,angles,times,True,_async=True)
+
+    def test_portable_cancel_waits_for_arm_resource_stop_acknowledgement(self):
+        from speech_player import SpeechPlayer
+        motion=Mock();ack=motion.killTasksUsingResources.return_value
+        ack.isFinished.return_value=False
+        future=SpeechPlayer(motion).run(PATHS[0]);future.cancel()
+        self.assertFalse(future.isFinished())
+        names=motion.killTasksUsingResources.call_args.args[0]
+        self.assertEqual(set(names),set(tp.NAMES[2:]))
+        self.assertNotIn('HeadYaw',names);self.assertNotIn('HipPitch',names)
+        ack.isFinished.return_value=True;self.assertTrue(future.isFinished())
+        ack.value.assert_called_once_with(0)
 
 if __name__=='__main__':unittest.main()

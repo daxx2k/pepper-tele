@@ -1,5 +1,16 @@
 # Release preparation validation - 2026-10-05
 
+## 0.3.8: native arm speech playback and qianim integer metadata
+
+The real 2.9 robot still stopped on PTT release with `conversion of data to type "i" failed`. Pointing resources used Qt metadata such as mute=false and frame=19.0. Packaged manual resources now canonicalize integer flags/FPS/integral frames without changing actuator values, timestamps or tangent values; original source clips are retained. Fractional author keyframes are rejected rather than silently rounded.
+
+Automatic speech gestures on 2.9 now use the same native ALMotion arm-only curve player used by the 2.5 variant. They no longer depend on ALAnimationPlayer parsing these speech clips. Cancellation uses only the twelve arm/hand resources and waits for acknowledgement before the measured-pose return. The official derivative curve data and gentle initial interval are retained.
+
+On the actual 2.9 robot, the new player completed a zero-displacement interpolation at the measured arm pose and acknowledged cancellation. No expressive gesture or head/torso/wheel motion was commanded during that API probe. The physical PTT gesture and continued head/base control still require an operator trial.
+
+186 Python tests passed for 2.9 and 188 for 2.5, including native arm ownership/cancellation and integer-metadata preservation checks. All three APKs built. The 2.5 native speech player is unchanged. Prior 0.3.6/0.3.7 repair claims were superseded by observed failures.
+
+
 ## 0.3.7: real-player PTT format investigation
 
 The 0.3.6 XML forwarding repair was incorrect: ALAnimationPlayer.run accepts a registered package/path, not inline XML. On the actual 2.9 player, a temporary package with two empty (no-actuator) resources reproduced the original error for a bare Animation element; adding the XML declaration advanced to the expected null-duration rejection. No physical animation was played by this probe. The package is removed after diagnosis.
