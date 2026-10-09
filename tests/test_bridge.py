@@ -578,6 +578,13 @@ class MotionTests(unittest.TestCase):
         self.assertEqual(self.robot.motion.getAngles.call_count,2)
         self.assertIn('hold_read',self.robot.stop_pending)
 
+    def test_huge_sdk_error_cannot_expand_stop_status_with_entire_clip(self):
+        self.state.armed=True
+        self.state.disarm('SDK error: '+('x'*20000))
+        self.assertEqual(len(self.state.last_stop['reason']),512)
+        self.assertEqual(len(self.state.fault),512)
+        self.assertFalse(self.state.armed)
+
     def test_official_catalog_is_small_and_has_no_procedural_fallback(self):
         from official_animations import CATALOG
         self.assertEqual(set(CATALOG),{'wave_left','wave_right','point_left','point_right','yes','no','happy','sad','dance','funny','look_around','make_space'})

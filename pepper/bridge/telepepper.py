@@ -631,6 +631,8 @@ class State(object):
             return True
 
     def disarm(self, reason=None, return_to_neutral=False):
+        # SDK errors may include entire XML clips; bound public status payloads.
+        if reason is not None:reason=str(reason)[:512]
         with self.lock:
             self.cancel_relax()
             self.stop_generation += 1
