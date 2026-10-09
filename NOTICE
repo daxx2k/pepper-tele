@@ -1,0 +1,11 @@
+TelePepper
+
+The original TelePepper project code is licensed under the Apache License,
+Version 2.0. See LICENSE for the full terms.
+
+Third-party components are not relicensed by this notice. They retain their
+own copyright notices and license terms. See docs/THIRD-PARTY.md, third_party/
+and quest/src/main/assets/UI-FONT-NOTICE.txt in the source distribution.
+
+Pepper and Quest are third-party product names. This project does not imply
+endorsement by their manufacturers.

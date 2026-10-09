@@ -1,0 +1,4 @@
+# Copy to .local/pepper.properties and fill in your own robot details.
+pepper.ip=HEAD_IP
+pepper.sshUser=nao
+pepper.sshPassword=

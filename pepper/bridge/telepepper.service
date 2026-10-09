@@ -1,0 +1,16 @@
+[Unit]
+Description=TelePepper teleoperation (starts disarmed)
+StartLimitInterval=0
+
+[Service]
+Type=simple
+WorkingDirectory=/home/nao
+ExecStart=/usr/bin/python -u /home/nao/telepepper.py --token-file /home/nao/.telepepper-token
+Restart=on-failure
+RestartPreventExitStatus=0
+RestartSec=15
+TimeoutStopSec=8
+ExecStopPost=/usr/bin/python /home/nao/telepepper_stop.py
+
+[Install]
+WantedBy=default.target

@@ -1,0 +1,34 @@
+.reference/
+**/Library/
+**/Temp/
+**/Logs/
+**/obj/
+**/build/
+**/.gradle/
+**/.cxx/
+**/local.properties
+**/__pycache__/
+**/*.pyc
+dist/
+.local/
+
+# Personal configuration, credentials, diagnostic captures and signing material
+*.properties.local
+pepper.properties
+.env
+.env.*
+!.env.example
+*.jks
+*.keystore
+*.pem
+*.key
+*.p12
+*.pfx
+*.log
+*.pcap
+*.pcapng
+Thumbs.db
+.DS_Store
+
+# Local workspace/archive bookkeeping
+SAVED-COPY.txt

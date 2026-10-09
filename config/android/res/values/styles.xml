@@ -1,0 +1,13 @@
+<resources>
+    <style name="TelePepperStudio" parent="android:style/Theme.Material.NoActionBar">
+        <item name="android:colorAccent">#0064E0</item>
+        <item name="android:windowBackground">#1A1A1A</item>
+        <item name="android:fontFamily">sans-serif</item>
+        <item name="android:textColorPrimary">#EBEBEB</item>
+        <item name="android:textColorSecondary">#B4B4B4</item>
+        <item name="android:colorControlNormal">#B4B4B4</item>
+        <item name="android:colorControlActivated">#0064E0</item>
+        <item name="android:statusBarColor">#1A1A1A</item>
+        <item name="android:navigationBarColor">#1A1A1A</item>
+    </style>
+</resources>
