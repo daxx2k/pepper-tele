@@ -1,5 +1,10 @@
 # Validation - Pepper 2.5 trial build
 
+## Operator confirmation: 0.3.8 (2026-10-09)
+
+After START and Gestures ON, the operator confirmed that releasing push-to-talk plays arm gestures and tracking remains active on the Pepper 2.9 setup. This is physical operator confirmation of that specific regression fix, in addition to the API probes and automated checks below. Independent head/base movement during gestures, long-session stability, physical latency and Pepper 2.5 compatibility were not separately confirmed by this trial. Earlier pending-trial statements below describe the state before this confirmation.
+
+
 ## 0.3.8: native arm speech playback and qianim integer metadata
 
 The real 2.9 robot still stopped on PTT release with `conversion of data to type "i" failed`. Pointing resources used Qt metadata such as mute=false and frame=19.0. Packaged manual resources now canonicalize integer flags/FPS/integral frames without changing actuator values, timestamps or tangent values; original source clips are retained. Fractional author keyframes are rejected rather than silently rounded.
