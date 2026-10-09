@@ -1,4 +1,6 @@
-# TelePepper for Pepper 2.9 - 0.3.8-test
+# TelePepper for the Pepper humanoid robot (NAOqi 2.9) - 0.3.8-test
+
+Pepper is a wheeled humanoid robot developed by SoftBank Robotics. Meta Quest is the virtual reality headset used to control it. NAOqi is the robot's software; install the TelePepper variant that matches its version.
 
 This package contains the Pepper Android tablet app and the native Quest app. During use, Quest communicates directly with the robot head; a PC is needed only for initial installation. Use your own robot credentials and pairing code.
 

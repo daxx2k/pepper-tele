@@ -2,13 +2,15 @@
 
 [Download the 0.3.8 experimental release](https://github.com/daxx2k/pepper-tele/releases/tag/v0.3.8-test) · [Pepper 2.5 branch](https://github.com/daxx2k/pepper-tele/tree/pepper25)
 
-Native Quest teleoperation and Wizard of Oz for Pepper: head and arm tracking, joystick base control, camera feeds, speech, tablet reactions and LEDs.
+TelePepper lets you control **Pepper, the wheeled humanoid robot developed by SoftBank Robotics**, using a **Meta Quest virtual reality headset**. The robot follows your head and arm movements; the headset controllers let you drive it, and live camera feeds show what the robot sees.
+
+For **Wizard of Oz research**, an operator controls the robot's speech and behaviour while participants interact with it. TelePepper provides speech controls, gestures and lights for these interactions.
 
 **Version 0.3.8-test — experimental prerelease.** This is a development project for operator-supervised evaluation. Automated checks do not prove physical latency, pose matching or compatibility on another robot.
 
 ## Versions and downloads
 
-This repository contains two separate variants. Use the `main` branch for Pepper NAOqi 2.9 with an Android tablet, and `pepper25` for Pepper NAOqi 2.5. Download the matching install ZIP from Releases; each ZIP includes English setup instructions, help, checksums and third-party notices.
+The numbers **2.9 and 2.5 refer to NAOqi, Pepper's robot software**, rather than different robot models. This repository contains two separate app variants. Use the `main` branch for Pepper NAOqi 2.9 with an Android tablet, and `pepper25` for Pepper NAOqi 2.5. Download the matching install ZIP from Releases; each ZIP includes English setup instructions, help, checksums and third-party notices.
 
 | Variant | Apps to install | Head-service setup | Validation |
 | --- | --- | --- | --- |
