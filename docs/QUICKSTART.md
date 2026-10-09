@@ -1,4 +1,6 @@
-# Quick start: Quest 3/3S and Pepper NAOqi 2.5
+# Quick start: Meta Quest 3/3S and the Pepper humanoid robot (NAOqi 2.5)
+
+Pepper is a wheeled humanoid robot developed by SoftBank Robotics. Meta Quest is the virtual reality headset used to control it. NAOqi is the robot's software; install the TelePepper variant that matches its version.
 
 ## Requirements
 
