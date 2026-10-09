@@ -1,8 +1,8 @@
 # TelePepper for Pepper NAOqi 2.5
 
-[Download the 0.3.5 experimental release](https://github.com/daxx2k/pepper-tele/releases/tag/v0.3.5-test) · [Pepper 2.9 branch](https://github.com/daxx2k/pepper-tele/tree/main)
+[Download the 0.3.6 experimental release](https://github.com/daxx2k/pepper-tele/releases/tag/v0.3.6-test) · [Pepper 2.9 branch](https://github.com/daxx2k/pepper-tele/tree/main)
 
-**Version 0.3.5-pepper25-test — experimental prerelease.**
+**Version 0.3.6-pepper25-test — experimental prerelease.**
 
 ## Versions and downloads
 

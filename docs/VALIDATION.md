@@ -1,5 +1,14 @@
 # Validation - Pepper 2.5 trial build
 
+## 0.3.6: animation resources, controls and tablet accent
+
+The 2.9 robot reported `input is neither XML nor a JSON array` while starting the speech gesture after PTT release. Bundled resource names are now resolved to their actual unmodified XML before ALAnimationPlayer.run; the returned future retains the existing cancellation and STOP barrier. System-library names still pass through unchanged. Four new resource-loading/failure tests pass. This fix is for 2.9; the 2.5 speech player already uses its portable arm-only curve player.
+
+The UI includes twelve named animations: the previous eight plus Dance (official headbang demo), Funny, Look around and Make space. Happy/Sad no longer include Reaction in their labels. The 12-button geometry test passed on Quest without commanding the robot. START/CONNECT on the 2.9 tablet uses the VR primary accent #0064E0. All three APKs built; Python suites passed 177 tests for 2.9 and 184 for 2.5.
+
+Pepper 2.5 still exposes only animations confirmed in its own installed library; the added 2.9 resource package is not installed on 2.5. New bundled clips and the PTT correction need supervised physical trials; successful builds and mocked playback do not prove physical performance. The records below refer to previous releases.
+
+
 ## Current review: 0.3.5-test (2026-10-09)
 
 The current review passed 173 Python tests for Pepper 2.9 and 184 for Pepper 2.5. Seventeen standalone native tests ran on Quest (math, panel interaction, controller chords, watchdog/start flow and loopback networking), plus the Java speech-queue and WAV tests on the PC. All three APKs built successfully. These tests do not command the real robot or measure physical latency.

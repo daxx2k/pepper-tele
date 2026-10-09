@@ -580,7 +580,7 @@ class MotionTests(unittest.TestCase):
 
     def test_official_catalog_is_small_and_has_no_procedural_fallback(self):
         from official_animations import CATALOG
-        self.assertEqual(set(CATALOG),{'wave_left','wave_right','point_left','point_right','yes','no','happy','sad'})
+        self.assertEqual(set(CATALOG),{'wave_left','wave_right','point_left','point_right','yes','no','happy','sad','dance','funny','look_around','make_space'})
         self.assertTrue(all(path.endswith('.qianim') for path in CATALOG.values()))
         self.assertFalse((ROOT/'pepper/bridge/gesture_catalog.py').exists())
 

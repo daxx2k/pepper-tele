@@ -29,3 +29,7 @@ The 2.5 bridge uses arm-only keyframes derived from the attributed official Pepp
 The Quest header shows the installed app version and build number. Help shows both Quest and the head-service version. On Android Pepper, configuration shows the tablet and head-service versions below the title; the participant display stays uncluttered. An older or unavailable head service is shown as unknown rather than guessed.
 
 The 2.5 supervisor confirms base STOP after a bridge crash before attempting a bounded restart. If cleanup cannot be confirmed it does not restart. Clean explicit Exit is never followed by cleanup that would interrupt normal autonomy.
+
+Dance uses the unmodified headbang clip from SoftBank Robotics Robot Focus and Android Lifecycle. Funny is the official Funny_01 gesture, not a claimed laugh animation. The other new clips come from Pepper Core Animations.
+
+On Pepper 2.5, manual availability remains limited to paths confirmed in its installed library; the 2.9 package is not installed by this fork.

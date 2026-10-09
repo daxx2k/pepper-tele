@@ -36,7 +36,7 @@ inline int nextVolume(int value){return value>=100?0:std::min(100,std::max(0,val
 inline Rect button(int group,int ordinal,int count){
     if(group==0){if(ordinal==0)return {x[group]+8,groupY[group]+33,width[group]-16,56};
         float w=(width[group]-22)/2;
-        if(ordinal>=3){int i=ordinal-3;float aw=(width[group]-34)/4;return {x[group]+8+(i%4)*(aw+6),groupY[group]+210+(i/4)*34,aw,28};}
+        if(ordinal>=3){int i=ordinal-3;float aw=(width[group]-34)/4;return {x[group]+8+(i%4)*(aw+6),groupY[group]+194+(i/4)*27,aw,23};}
         int i=ordinal-1,rows=std::min(count,4)/2;float h=std::min(42.f,81.f/std::max(1,rows));
         return {x[group]+8+(i%2)*(w+6),groupY[group]+97+(i/2)*h,w,h-6};}
     if(group==6){

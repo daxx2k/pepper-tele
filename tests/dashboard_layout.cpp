@@ -11,7 +11,7 @@ int main(){using namespace dashboard_layout;
     assert(x[4]<fusion.x&&x[0]>fusion.x+fusion.w);
     for(int group=0;group<7;group++){assert(x[group]>=0&&x[group]+width[group]<=1400);
         if(group==3||group==5){assert(width[group]==0);continue;}
-        for(int count=1;count<=(group==1?32:group==6?10:group==0?11:8);count++)for(int i=0;i<count;i++){auto r=button(group,i,count);assert(r.x>=x[group]&&r.x+r.w<=x[group]+width[group]+.01f);assert(r.y>=groupY[group]+33&&r.y+r.h<=groupY[group]+groupHeight[group]+.01f&&r.h>0);}
+        for(int count=1;count<=(group==1?32:group==6?10:group==0?15:8);count++)for(int i=0;i<count;i++){auto r=button(group,i,count);assert(r.x>=x[group]&&r.x+r.w<=x[group]+width[group]+.01f);assert(r.y>=groupY[group]+33&&r.y+r.h<=groupY[group]+groupHeight[group]+.01f&&r.h>0);}
         for(int other=group+1;other<7;other++){if(other==3||other==5)continue;assert(x[group]+width[group]<=x[other]||x[other]+width[other]<=x[group]||groupY[group]+groupHeight[group]<=groupY[other]||groupY[other]+groupHeight[other]<=groupY[group]);}
     }
     assert(clearLaser.x>=lidarCard.x&&clearLaser.x+clearLaser.w<=lidarCard.x+lidarCard.w&&clearLaser.y>=lidarCard.y&&clearLaser.y+clearLaser.h<=lidarCard.y+lidarCard.h);
