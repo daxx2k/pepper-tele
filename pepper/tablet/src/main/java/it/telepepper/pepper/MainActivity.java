@@ -21,7 +21,7 @@ public class MainActivity extends Activity {
     private EditText host,user,password;
     private TextView status,code,versionLabel;
     private String token;
-    private Button connectButton,startButton;
+    private Button connectButton,startButton,updateButton;
     private volatile boolean connected;
     private volatile boolean configVisible;
     private boolean allowAutoDisplay=true;
@@ -74,6 +74,14 @@ public class MainActivity extends Activity {
         password=compactField(connection,"SSH password",config.optString("password",getPreferences(MODE_PRIVATE).getString("ssh_password","")),true);
         LinearLayout linkControls=ui.row();
         connectButton=ui.button("CONNECT",false);LinearLayout.LayoutParams connectSpace=new LinearLayout.LayoutParams(0,ui.dp(48),1);connectSpace.setMargins(0,ui.dp(12),ui.dp(8),0);linkControls.addView(connectButton,connectSpace);
+        updateButton=ui.button("Update service",false);LinearLayout.LayoutParams updateSpace=new LinearLayout.LayoutParams(0,ui.dp(48),1);updateSpace.setMargins(0,ui.dp(12),0,0);linkControls.addView(updateButton,updateSpace);
+        updateButton.setOnClickListener(v->{
+            if(!connectButton.isEnabled()){status("Wait for the current operation to finish.");return;}
+            String h=host.getText().toString().trim(),u=user.getText().toString().trim(),p=password.getText().toString();
+            if(h.isEmpty()||u.isEmpty()){status("Enter the robot head address and SSH username.");return;}
+            connected=false;connectButton.setEnabled(false);connectButton.setText("UPDATING...");updateButton.setEnabled(false);
+            worker.execute(()->deploy(h,u,p,true));
+        });
         connection.addView(linkControls);startButton=connectButton;
         status=ui.text("CONNECT starts the service. DISPLAY opens the participant screen.",14,ui.ink,false);status.setPadding(0,ui.dp(12),0,0);status.setMaxLines(4);status.setAccessibilityLiveRegion(android.view.View.ACCESSIBILITY_LIVE_REGION_POLITE);connection.addView(status);
         setContentView(scroll);
@@ -138,6 +146,37 @@ public class MainActivity extends Activity {
         }
         status("Preparation not confirmed. Check Pepper before starting.");
     }catch(Exception e){status("Preparation failed: "+e.getMessage());}return false;}
+    private void backupFile(ChannelSftp sftp,String source,String destination)throws Exception{
+        byte[] bytes;
+        try(InputStream in=sftp.get(source)){
+            ByteArrayOutputStream out=new ByteArrayOutputStream();byte[] buffer=new byte[4096];int n;
+            while((n=in.read(buffer))!=-1){if(out.size()+n>16*1024*1024)throw new IOException("Installed service file is too large to back up");out.write(buffer,0,n);}bytes=out.toByteArray();
+        }catch(SftpException missing){if(missing.id==ChannelSftp.SSH_FX_NO_SUCH_FILE)return;throw missing;}
+        sftp.put(new ByteArrayInputStream(bytes),destination);
+    }
+    private void waitForServiceStop(String h)throws Exception{
+        long deadline=System.currentTimeMillis()+10000;
+        while(System.currentTimeMillis()<deadline){
+            try(Socket probe=new Socket()){probe.connect(new InetSocketAddress(h,9570),700);}
+            catch(java.net.ConnectException stopped){return;}
+            Thread.sleep(150);
+        }
+        throw new IOException("Previous service is still running; update was not applied");
+    }
+    private void requireIdleForUpdate(String h)throws Exception{
+        try(Socket socket=new Socket()){
+            socket.connect(new InetSocketAddress(h,9570),2000);socket.setSoTimeout(2000);
+            BufferedReader in=new BufferedReader(new InputStreamReader(socket.getInputStream(),StandardCharsets.UTF_8));
+            OutputStream out=socket.getOutputStream();out.write((new JSONObject().put("token",token).put("role","operator").toString()+"\n").getBytes(StandardCharsets.UTF_8));
+            if(!new JSONObject(in.readLine()).has("observer"))throw new IOException("Existing service pairing refused; stop it before updating.");
+            out.write("{\"cmd\":\"status\"}\n".getBytes(StandardCharsets.UTF_8));JSONObject state=new JSONObject(in.readLine());
+            if(!state.has("armed")||state.getBoolean("armed")||state.optJSONObject("preparation")==null||state.getJSONObject("preparation").optBoolean("busy",true))
+                throw new IOException("Stop tracking and wait for preparation to finish before Update service.");
+            JSONObject d=state.optJSONObject("motion_diagnostics");
+            if(d==null||d.optBoolean("stopping",true)||!d.optString("stop_error","").isEmpty()||d.optBoolean("returning_to_neutral",false))
+                throw new IOException("Wait for confirmed STOP before Update service.");
+        }catch(java.net.ConnectException inactive){/* No listener: a stopped service can be installed. */}
+    }
     private void deploy(String h,String u,String p,boolean install){Session session=null;try{
         status("Connecting to robot head...");JSch jsch=new JSch();File known=new File(getFilesDir(),"known_hosts");if(!known.exists())known.createNewFile();jsch.setKnownHosts(known.getAbsolutePath());
         session=jsch.getSession(u,h,22);session.setPassword(p);Properties options=new Properties();options.put("StrictHostKeyChecking","ask");options.put("PreferredAuthentications","keyboard-interactive,password");session.setConfig(options);
@@ -145,16 +184,30 @@ public class MainActivity extends Activity {
         session.connect(10000);session.setTimeout(10000);status("Checking robot dependencies...");
         exec(session,"python -c 'import sys; sys.path.insert(0,\"/opt/aldebaran/lib/python2.7/site-packages\"); import qi; from PIL import Image' && systemctl --user --version >/dev/null");
         if(install){
-        status("Preparing robot service...");
-        // Stop only TelePepper before updating its supervised service.
-        exec(session,"systemctl --user stop telepepper.service 2>/dev/null || true");
-        exec(session,"if test -f /home/nao/telepepper.pid; then p=$(cat /home/nao/telepepper.pid); case $p in ''|*[!0-9]*) exit 1;; esac; if test -r /proc/$p/cmdline && tr '\\0' ' ' </proc/$p/cmdline | grep -q '^python /home/nao/telepepper.py --token-file '; then kill -TERM $p; sleep 1; fi; fi");
-        ChannelSftp sftp=(ChannelSftp)session.openChannel("sftp");sftp.connect(5000);
-        for(String name:getAssets().list(""))if(name.endsWith(".py")||name.endsWith(".pkg")){try(InputStream script=getAssets().open(name)){sftp.put(script,"/home/nao/"+name);}}
-        sftp.put(new ByteArrayInputStream(token.getBytes(StandardCharsets.UTF_8)),"/home/nao/.telepepper-token");sftp.chmod(0600,"/home/nao/.telepepper-token");
-        exec(session,"mkdir -p /home/nao/.config/systemd/user");
-        try(InputStream unit=getAssets().open("telepepper.service")){sftp.put(unit,"/home/nao/.config/systemd/user/telepepper.service");}
-        sftp.disconnect();
+            requireIdleForUpdate(h);
+            String stage="/home/nao/telepepper-update-"+System.currentTimeMillis();
+            String backup=stage+"-backup";
+            status("Staging service update / keeping base settings...");
+            ChannelSftp sftp=(ChannelSftp)session.openChannel("sftp");sftp.connect(5000);
+            try{
+                sftp.mkdir(stage);sftp.mkdir(backup);
+                for(String name:getAssets().list(""))if(name.endsWith(".py")||name.endsWith(".pkg")){
+                    try(InputStream script=getAssets().open(name)){sftp.put(script,stage+"/"+name);}
+                }
+                exec(session,"python "+stage+"/deployment_settings.py /home/nao/telepepper.py "+stage+"/telepepper.py");
+                exec(session,"python -c 'import glob,py_compile; [py_compile.compile(p,doraise=True) for p in glob.glob(\""+stage+"/*.py\")]'");
+                // Re-check after upload: never replace a newly armed session.
+                requireIdleForUpdate(h);
+                exec(session,"systemctl --user stop telepepper.service 2>/dev/null || true");
+                exec(session,"if test -f /home/nao/telepepper.pid; then p=$(cat /home/nao/telepepper.pid); case $p in ''|*[!0-9]*) exit 1;; esac; if test -r /proc/$p/cmdline && tr '\\0' ' ' </proc/$p/cmdline | grep -q '^python /home/nao/telepepper.py --token-file '; then kill -TERM $p; sleep 1; fi; fi");
+                waitForServiceStop(h);
+                for(String name:getAssets().list(""))if(name.endsWith(".py")||name.endsWith(".pkg"))backupFile(sftp,"/home/nao/"+name,backup+"/"+name);
+                backupFile(sftp,"/home/nao/.config/systemd/user/telepepper.service",backup+"/telepepper.service");
+                for(String name:getAssets().list(""))if(name.endsWith(".py")||name.endsWith(".pkg"))exec(session,"mv "+stage+"/"+name+" /home/nao/"+name);
+                sftp.put(new ByteArrayInputStream(token.getBytes(StandardCharsets.UTF_8)),"/home/nao/.telepepper-token");sftp.chmod(0600,"/home/nao/.telepepper-token");
+                exec(session,"mkdir -p /home/nao/.config/systemd/user");
+                try(InputStream unit=getAssets().open("telepepper.service")){sftp.put(unit,"/home/nao/.config/systemd/user/telepepper.service");}
+            }finally{sftp.disconnect();}
         }
         exec(session,"systemctl --user daemon-reload && systemctl --user disable telepepper.service && systemctl --user start telepepper.service");
         for(int attempt=0;attempt<15;attempt++){
@@ -164,7 +217,7 @@ public class MainActivity extends Activity {
         if(!connected)throw new IOException("Service did not become reachable");
         getPreferences(MODE_PRIVATE).edit().putBoolean("setup_complete",true).putInt("bridge_revision",1).putString("head_host",h).putString("ssh_user",u).putString("ssh_password",p).apply();
         status("Connected. Press START to prepare Pepper, then start tracking from Quest.");
-    }catch(Exception e){connected=false;status("Connection failed: "+e.getMessage());}finally{if(session!=null)session.disconnect();runOnUiThread(()->{connectButton.setText(connected?"START":"CONNECT");connectButton.setEnabled(true);});}}
+    }catch(Exception e){connected=false;status("Connection failed: "+e.getMessage());}finally{if(session!=null)session.disconnect();runOnUiThread(()->{connectButton.setText(connected?"START":"CONNECT");connectButton.setEnabled(true);if(updateButton!=null)updateButton.setEnabled(true);});}}
     private void emergency(String h){try(Socket socket=new Socket()){socket.connect(new InetSocketAddress(h,9570),2000);socket.setSoTimeout(2000);JSONObject request=new JSONObject();request.put("token",token);request.put("emergency",true);socket.getOutputStream().write((request.toString()+"\n").getBytes(StandardCharsets.UTF_8));String line=new BufferedReader(new InputStreamReader(socket.getInputStream())).readLine();if(line==null)throw new IOException("No acknowledgement");status("STOP confirmed. Hold A + X in Quest to restart.");}catch(Exception e){status("STOP not confirmed: "+e.getMessage()+". Use the physical stop on Pepper.");}}
     private void exitTeleoperation(){
         if(connectButton!=null&&!connectButton.isEnabled()){status("Wait for connection setup to finish before exiting.");return;}

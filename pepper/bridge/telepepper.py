@@ -250,34 +250,47 @@ class Robot(object):
         self.base = [0.] * 3
         self.base_sent = None
         self.velocity = [0.] * 14
+        errors=[]
         if self.animation_resume_future is not None:
-            self.animation_resume_future.cancel()
+            try:self.animation_resume_future.cancel()
+            except Exception as exc:errors.append('Stop pose read cancel failed: '+str(exc))
             self.animation_resume_future=None
-        speech=self.speech_arms.stop()
+        # Never let an animation cancellation exception skip base braking.
+        speech=self.speech_arms.future
+        try:speech=self.speech_arms.stop()
+        except Exception as exc:errors.append('Stop speech gesture cancel failed: '+str(exc))
         if speech is not None and not self.simulate:
             self.stop_pending['speech_cancel']=(speech,clock())
         animation=self.animation_future
         self.animation_future=None
         if animation is not None:
-            animation.cancel()
+            try:animation.cancel()
+            except Exception as exc:errors.append('Stop animation cancel failed: '+str(exc))
             if not self.simulate:self.stop_pending['animation_cancel']=(animation,clock())
         if not self.simulate:
-            if self.stop_pending and animation is None and speech is None:return
-            self.stop_error='';self.stop_error_reported=False
+            if self.stop_pending and animation is None and speech is None and not errors:return
+            self.stop_error='; '.join(errors)
+            self.stop_error_reported=False
             operations=[('base_zero',lambda:self.motion.moveToward(0.,0.,0.,_async=True)),
-                        ('base_stop',lambda:self.motion.stopMove(_async=True)),
-                        ]
-            if animation is None and speech is None:operations.extend([('hold_read',lambda:self.motion.getAngles(NAMES,True,_async=True)),('torso_read',lambda:self.motion.getAngles(['HipRoll','HipPitch'],True,_async=True))])
+                        ('base_stop',lambda:self.motion.stopMove(_async=True))]
+            if animation is None and speech is None and not errors:
+                operations.extend([('hold_read',lambda:self.motion.getAngles(NAMES,True,_async=True)),
+                                   ('torso_read',lambda:self.motion.getAngles(['HipRoll','HipPitch'],True,_async=True))])
             for channel,operation in operations:
                 try:self.stop_pending[channel]=(operation(),clock())
-                except Exception as exc:self.stop_error+='Stop '+channel+' request failed: '+str(exc)+'; '
+                except Exception as exc:self.stop_error+='; Stop '+channel+' request failed: '+str(exc)
 
     def poll_stop(self):
         if self.simulate:return
         # All waits are completion checks. Logical STOP and pose receipt never
         # wait on a physical braking/hold RPC; arming waits for verified completion.
         for channel,(future,began) in list(self.stop_pending.items()):
-            if not future.isFinished():
+            try:finished=future.isFinished()
+            except Exception as exc:
+                if 'Stop '+channel+' completion check failed' not in self.stop_error:
+                    self.stop_error+='; Stop '+channel+' completion check failed: '+str(exc)
+                continue
+            if not finished:
                 if clock()-began>2. and not self.stop_error:
                     self.stop_error='Stop '+channel+' acknowledgement stalled (>2 s)'
                 continue
@@ -780,6 +793,7 @@ class Service(object):
         with self.exit_lock:
             if self.closing: raise ValueError('Exit already in progress')
             self.closing = True
+            normal_future=None
             try:
                 with self.state.lock:
                     self.state.disarm('Explicit TelePepper exit')
@@ -802,17 +816,38 @@ class Service(object):
                         raise RuntimeError('Robot STOP not confirmed; autonomy remains disabled')
                     time.sleep(.02)
                 if not robot.simulate:
-                    robot.life.setState('solitary', _async=True).value(8000)
+                    with self.state.lock:
+                        if self.state.stop_generation != stopped_generation:
+                            raise RuntimeError('Exit cancelled by a newer STOP')
+                    normal_future=robot.life.setState('solitary', _async=True)
+                    mode_deadline=clock()+8.
+                    while not normal_future.isFinished():
+                        with self.state.lock:
+                            if self.state.stop_generation != stopped_generation:
+                                raise RuntimeError('Exit cancelled during normal-mode handoff')
+                        if clock()>=mode_deadline:raise RuntimeError('Normal-mode handoff timed out')
+                        time.sleep(.02)
+                    normal_future.value(0)
                     mode = robot.life.getState(_async=True).value(2000)
                     if mode not in ('solitary','interactive'):
                         raise RuntimeError('Normal robot mode not confirmed')
                 with self.state.lock:
+                    if self.state.stop_generation != stopped_generation:
+                        raise RuntimeError('Exit cancelled during normal-mode handoff')
                     self.state.session = None
                     self.state.peer = None
                     self.normal_exit = True
                 return {'ok':True,'normal_mode':True,'service_stopping':True,'armed':False}
             except Exception:
-                self.closing = False
+                try:
+                    if normal_future is not None and not robot.simulate:
+                        try:
+                            try:normal_future.cancel()
+                            except Exception:pass
+                            robot.life.setState('disabled',_async=True).value(8000)
+                        finally:
+                            with self.state.lock:robot.stop()
+                finally:self.closing = False
                 raise
 
     def spawn(self, fn, *args):

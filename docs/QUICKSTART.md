@@ -1,4 +1,4 @@
-# TelePepper for Pepper 2.9 â€” 0.3.4-test
+# TelePepper for Pepper 2.9 - 0.3.5-test
 
 This package contains the Pepper Android tablet app and the native Quest app. During use, Quest communicates directly with the robot head; a PC is needed only for initial installation. Use your own robot credentials and pairing code.
 
@@ -24,7 +24,7 @@ The Quest installer downloads and installs the pinned offline British English Co
 
 ## Connect your Pepper
 
-1. Open TelePepper on Pepper's tablet. In Advanced setup, enter your robot's own SSH username and password. The tablet-to-head address defaults to its internal address, `198.18.0.1`.
+1. Open TelePepper on Pepper's tablet. In Connection, enter your robot's own SSH username and password. The tablet-to-head address defaults to its internal address, `198.18.0.1`.
 2. Press CONNECT (the button becomes START after connection) and confirm the SSH identity for your robot. First setup checks dependencies and installs the bundled head bridge. CONNECT starts the service disarmed; it does not wake or move Pepper. The service does not start at robot boot.
 3. Copy the private Quest pairing code shown on the tablet. Press START on the tablet to prepare Pepper and open the participant display; leave room for its operating posture.
 4. Open TelePepper on Quest from the sideloaded/Unknown Sources library. In Connection settings, select Find Pepper on Wi-Fi, choose your robot, enter its pairing code, then save and open VR. If discovery is unavailable, enter the robot HEAD Wi-Fi address shown under For Robot Browser on Pepper's tablet.
@@ -61,3 +61,9 @@ If connection fails, check the running service, head address, pairing code and W
 Before use, check STOP, tracking-loss behaviour and movement on your robot. The new speech gesture mode still needs a physical operator trial; automated tests do not establish mechanical latency. See VALIDATION.md for the exact checks completed, HELP.md for controls and THIRD-PARTY.md for notices. Recording and session export are deferred.
 
 Tablet configuration is compact on one screen: CONNECT becomes START once connected, and DISPLAY opens the participant screen directly. The participant screen shows only the settings icon and small status indicators.
+
+## Update an existing 2.9 installation
+
+Install the new tablet and Quest APKs with the same signing key. Stop tracking, wait for neutral return/STOP to complete, then use **Update service** in the tablet Connection card. This uploads and checks the bundle before replacement, backs up the prior scripts on the robot and preserves numeric base-security/test-cap settings. Other custom source edits are superseded by the bundled update; retain the backup if needed. The update does not arm tracking or enable boot autostart. A plain CONNECT continues to start the existing installed bridge.
+
+Installing only the Quest APK with MDH does not install the separate Cori voice engine. Use Install.ps1 for Quest to install both, or install the Cori engine APK separately with MDH. Pepper TTS remains available without Cori.

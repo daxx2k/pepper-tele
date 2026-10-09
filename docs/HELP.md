@@ -97,3 +97,5 @@ With Gestures ON, releasing the left push-to-talk grip triggers an arm gesture a
 ## Versions
 
 The Quest header shows the installed app version and build number. Help shows both Quest and the head-service version. On Android Pepper, configuration shows the tablet and head-service versions below the title; the participant display stays uncluttered. An older or unavailable head service is shown as unknown rather than guessed.
+
+**Update service** in tablet Connection upgrades the installed head scripts while tracking is stopped, keeps numeric base settings and stores a backup. CONNECT starts the installed service; it becomes START after connection.

@@ -126,6 +126,50 @@ class SpeechArmTests(unittest.TestCase):
         self.robot.motion.getAngles.assert_called()
         self.assertFalse(self.arms.speaking)
 
+    def test_broken_animation_cancel_still_brakes_base_and_blocks_restart(self):
+        self.hardware()
+        future=Mock();future.cancel.side_effect=RuntimeError('cancel failed')
+        self.robot.animation_future=future
+        self.robot.stop()
+        self.robot.motion.moveToward.assert_called_once_with(0.,0.,0.,_async=True)
+        self.robot.motion.stopMove.assert_called_once_with(_async=True)
+        self.assertIn('cancel failed',self.robot.stop_error)
+        self.robot.motion.getAngles.assert_not_called()
+
+    def test_broken_stop_completion_does_not_skip_other_braking_acknowledgements(self):
+        self.hardware()
+        broken=Mock();broken.isFinished.side_effect=RuntimeError('lost future')
+        completed=Mock();completed.isFinished.return_value=True
+        self.robot.stop_pending={'base_zero':(broken,time.monotonic()),'base_stop':(completed,time.monotonic())}
+        with self.assertRaisesRegex(RuntimeError,'completion check failed'):self.robot.poll_stop()
+        completed.value.assert_called_once_with(0)
+        self.assertNotIn('base_stop',self.robot.stop_pending)
+        self.assertIn('base_zero',self.robot.stop_pending)
+        error=self.robot.stop_error
+        self.robot.poll_stop();self.assertEqual(self.robot.stop_error,error)
+
+    def test_broken_speech_cancel_still_brakes_base(self):
+        self.hardware();self.begin();self.arms.poll(tp.NAMES)
+        self.clip.cancel.side_effect=RuntimeError('speech cancel failed')
+        self.robot.stop()
+        self.robot.motion.stopMove.assert_called_once_with(_async=True)
+        self.assertIn('speech cancel failed',self.robot.stop_error)
+        self.assertEqual(self.arms.phase,'idle')
+
+    def test_piper_cancel_failure_does_not_leak_clip_lock_or_temporary_file(self):
+        service=Mock(port=0);service.state=tp.State(self.robot)
+        woz=tp.WoZ(service,time.monotonic)
+        player=Mock();player.playFile.return_value.isFinished.return_value=True
+        woz.services['ALAudioPlayer']=player;woz.authorized=Mock(return_value=True)
+        self.arms.end=Mock(side_effect=RuntimeError('cancel failed'))
+        a,b=socket.socketpair()
+        try:
+            woz.play_piper(a,io.BytesIO(b'\0\0'*320),{'session':'pilot','piper_bytes':640},'peer')
+            self.assertTrue(woz.clip_lock.acquire(False));woz.clip_lock.release()
+            self.assertIsNone(woz.clip_future)
+            self.assertFalse(pathlib.Path(player.playFile.call_args.args[0]).exists())
+        finally:a.close();b.close();woz.audio_socket.close()
+
     def test_timeout_discards_speech_ownership(self):
         self.hardware();self.begin();self.arms.poll(tp.NAMES)
         state=tp.State(self.robot);state.armed=True;state.received=1.

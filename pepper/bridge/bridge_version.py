@@ -1,2 +1,2 @@
-VERSION = '0.3.4-test'
+VERSION = '0.3.5-test'
 VARIANT = 'Pepper 2.9'

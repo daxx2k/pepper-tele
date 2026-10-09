@@ -85,11 +85,12 @@ class SpeechArms(object):
         self.speaking = False
         self.source = None
         future = self.future
-        if future is not None and not future.isFinished():
-            future.cancel()
-        self.future = None
-        self.phase = 'idle'
-        self.blend_at = None
+        try:
+            if future is not None and not future.isFinished():future.cancel()
+        finally:
+            self.future = None
+            self.phase = 'idle'
+            self.blend_at = None
         return future
 
     def poll(self, names):
