@@ -17,7 +17,7 @@ def install_package(session, path):
         if not os.path.isfile(path):
             return False
         manager=session.service('PackageManager')
-        if not manager.hasPackage('telepepper-speaking') or manager.package2('telepepper-speaking')['version']!='1.0.0':
+        if not manager.hasPackage('telepepper-speaking') or manager.package2('telepepper-speaking')['version']!='1.0.1':
             if not manager.install(path,_async=True).value(10000):
                 raise RuntimeError('Speaking arm package installation failed')
         return True

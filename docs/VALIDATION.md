@@ -1,5 +1,14 @@
 # Release preparation validation - 2026-10-05
 
+## 0.3.7: real-player PTT format investigation
+
+The 0.3.6 XML forwarding repair was incorrect: ALAnimationPlayer.run accepts a registered package/path, not inline XML. On the actual 2.9 player, a temporary package with two empty (no-actuator) resources reproduced the original error for a bare Animation element; adding the XML declaration advanced to the expected null-duration rejection. No physical animation was played by this probe. The package is removed after diagnosis.
+
+Speech package 1.0.1 now contains XML declarations on every qianim, and the player again receives package/path. Startup validation rejects malformed bundled headers. Public STOP reasons are bounded to 512 characters because SDK errors can contain entire XML clips and overflow status replies. These changes preserve native motion watchdogs and cancellation barriers.
+
+Python suites passed 180 tests for 2.9 and 185 for 2.5; all three APKs build. Physical PTT gestures still require the operator's next trial. The 2.5 speech player is unchanged; only bounded error reporting is shared with that fork. Earlier validation text describes superseded attempts and must not be treated as proof that 0.3.6 solved PTT.
+
+
 ## 0.3.6: animation resources, controls and tablet accent
 
 The 2.9 robot reported `input is neither XML nor a JSON array` while starting the speech gesture after PTT release. Bundled resource names are now resolved to their actual unmodified XML before ALAnimationPlayer.run; the returned future retains the existing cancellation and STOP barrier. System-library names still pass through unchanged. Four new resource-loading/failure tests pass. Installed Quest and tablet report 0.3.6-test; deployed head assets were compared with the staged source (preserving installed numeric settings). Authenticated status confirms all twelve manual names, speech gestures available, motion disarmed and no STOP error. No automatic physical animation or speech was triggered during deployment; a PTT operator trial remains pending. This fix is for 2.9; the 2.5 speech player already uses its portable arm-only curve player.

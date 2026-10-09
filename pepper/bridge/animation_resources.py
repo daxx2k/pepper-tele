@@ -1,4 +1,4 @@
-"""Resolve bundled qianim resources to XML for ALAnimationPlayer.run."""
+"""Validate bundled qianim files; ALAnimationPlayer.run takes package/path."""
 import os
 import zipfile
 import xml.etree.ElementTree as ET
@@ -14,10 +14,11 @@ class ResourceAnimationPlayer(object):
                 for name in archive.namelist():
                     if '/' in name or not name.endswith('.qianim'):continue
                     data=archive.read(name).decode('utf-8')
-                    if ET.fromstring(data).tag!='Animation':raise ValueError('Invalid bundled animation '+name)
+                    if ET.fromstring(data).tag!='Animation' or not data.lstrip().startswith('<?xml'):
+                        raise ValueError('Invalid bundled animation header '+name)
                     self.resources[package+'/'+name]=data
     def run(self,path,_async=True):
         if path.startswith(('telepepper-anims/','telepepper-speaking/')):
             if path not in self.resources:raise ValueError('Bundled animation unavailable: '+path)
-            return self.player.run(self.resources[path],_async=_async)
+            return self.player.run(path,_async=_async)
         return self.player.run(path,_async=_async)
