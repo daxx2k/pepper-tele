@@ -1,5 +1,5 @@
 """Twelve official Pepper animations; no procedural fallback."""
-PACKAGE_VERSION='1.2.0'
+PACKAGE_VERSION='1.3.0'
 CATALOG={
  'wave_left':'telepepper-anims/wave_left.qianim',
  'wave_right':'telepepper-anims/wave_right.qianim',

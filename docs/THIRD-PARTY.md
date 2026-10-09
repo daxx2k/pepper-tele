@@ -13,3 +13,5 @@ Six unmodified clips (Hello_01, Hello_09, PointFrontL_01, PointFrontR_01, NiceRe
 Automatic speech gestures use arm-only keyframe derivatives of the same Pepper Core Animations, under the same BSD 3-Clause terms. The 2.9 runtime packages those derivatives separately; the 2.5 runtime uses the attributed curves in speech_clip_data.py through ALMotion. Head, hips and wheel curves are excluded.
 
 The expanded manual collection also contains unmodified Funny_01, Looking_around_01 and Make_Space_01 from Pepper Core Animations. Dance is the unmodified headbang_a001 from https://github.com/softbankrobotics-labs/robot-focus-and-android-lifecycle ; Copyright 2011-2021 SoftBank Robotics Europe, BSD 3-Clause, reproduced in third_party/PEPPER-DANCE-LICENSE.txt and DANCE-COPYING inside the package.
+
+Runtime packaging canonicalizes qianim integer metadata flags and integral frame representations for the native player. Actuator targets, timing and tangents are retained; source clips remain as upstream supplied. Speech curve derivatives run through ALMotion on both variants.

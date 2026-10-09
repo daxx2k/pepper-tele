@@ -33,3 +33,5 @@ The 2.5 supervisor confirms base STOP after a bridge crash before attempting a b
 Dance uses the unmodified headbang clip from SoftBank Robotics Robot Focus and Android Lifecycle. Funny is the official Funny_01 gesture, not a claimed laugh animation. The other new clips come from Pepper Core Animations.
 
 On Pepper 2.5, manual availability remains limited to paths confirmed in its installed library; the 2.9 package is not installed by this fork.
+
+Automatic speech gestures use native arm-only interpolation on both variants. Head, torso and wheels are excluded from those resources; existing tracking and STOP checks remain active.
