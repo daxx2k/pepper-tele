@@ -351,9 +351,9 @@ void main(){
         auto limits=state.value("robot_limits",J::object());
         const char* limitKeys[]={"range","speed"};const char* limitLabels[]={"Joint limits","Speed limits"};
         for(int i=0;i<2;++i)rows.push_back({std::string(limitLabels[i])+(limits.value(limitKeys[i],true)?": ON":": OFF"),"Pause then change this software limit / START resumes",{{"cmd","local_robot_limit"},{"key",limitKeys[i]},{"slot",i},{"enabled",!limits.value(limitKeys[i],true)}}});
-        const char* gestureNames[]={"wave_left","wave_right","point_left","point_right","yes","no","happy","sad"};
-        const char* gestureLabels[]={"Wave left","Wave right","Point left","Point right","Affirm","Refuse","Happy reaction","Sad reaction"};
-        for(int i=0;i<8;++i)rows.push_back({gestureLabels[i],"Official Pepper animation / base stopped / B cancels",{{"cmd","gesture"},{"name",gestureNames[i]}}});
+        const char* gestureNames[]={"wave_left","wave_right","point_left","point_right","yes","no","happy","sad","dance","funny","look_around","make_space"};
+        const char* gestureLabels[]={"Wave left","Wave right","Point left","Point right","Affirm","Refuse","Happy","Sad","Dance","Funny","Look around","Make space"};
+        for(int i=0;i<12;++i)rows.push_back({gestureLabels[i],"Official Pepper animation / base stopped / B cancels",{{"cmd","gesture"},{"name",gestureNames[i]}}});
         for(int c=0;c<2;++c)rows.push_back({c==0?"Top camera":"Bottom camera","Click the feed to toggle streaming",{{"cmd","local_camera"},{"camera",c}}});
         rows.push_back({network->depthStreaming?"Depth: ON":"Depth: OFF","Click the depth panel to toggle streaming",{{"cmd","local_depth"}}});
         rows.push_back({"Volume: "+std::to_string(speakerVolume)+"%","Cycle speaker volume 0 to 100% / 20% steps",{{"cmd","local_volume"}}});
@@ -979,7 +979,7 @@ void main(){
         const char* groups[]={"Motion","Voice & phrases","Tablet","View","Connection","Pose offsets","Appearance"};
         const auto& xs=dashboard_layout::x;const auto& ws=dashboard_layout::width;
         for(int g=0;g<7;++g){if(g==3||g==5)continue;auto tint=dashboard_theme::section[g];surfaceCard(xs[g],dashboard_layout::groupY[g],ws[g],dashboard_layout::groupHeight[g],tint);fitText(groups[g],xs[g]+23,dashboard_layout::groupY[g]+8,ws[g]-35,.85f,.88f,.93f,ui_type::heading);}
-        fitText("OFFICIAL ANIMATIONS / B cancels",xs[0]+10,dashboard_layout::groupY[0]+183,ws[0]-20,.55f,.85f,.75f,ui_type::secondary);
+        fitText("OFFICIAL ANIMATIONS / B cancels",xs[0]+10,dashboard_layout::groupY[0]+174,ws[0]-20,.55f,.85f,.75f,ui_type::secondary);
         pixelLine(xs[1]+12,dashboard_layout::groupY[1]+136,xs[1]+ws[1]-12,dashboard_layout::groupY[1]+136,1,.21f,.25f,.34f);
         fitText("PHRASES",xs[1]+12,dashboard_layout::groupY[1]+139,ws[1]-24,.7f,.75f,.9f,ui_type::secondary);
         if(layoutEditing){for(int i=0;i<13;++i){auto r=floating_layout::cards[i];pixelLine(r.x+5,r.y+2,r.x+r.w-5,r.y+2,3,.25f,.65f,1);if(i<11)panel(r.x+r.w*.5f-20,r.y+4,40,3,.4f,.75f,1,1.5f);}}

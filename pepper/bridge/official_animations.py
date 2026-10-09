@@ -1,5 +1,5 @@
-"""Eight official Pepper animations; no procedural fallback."""
-PACKAGE_VERSION='1.1.0'
+"""Twelve official Pepper animations; no procedural fallback."""
+PACKAGE_VERSION='1.2.0'
 CATALOG={
  'wave_left':'telepepper-anims/wave_left.qianim',
  'wave_right':'telepepper-anims/wave_right.qianim',
@@ -9,5 +9,9 @@ CATALOG={
  'no':'animations/Stand/Negation/Pepper/Center_Neutral_NEG_01.qianim',
  'happy':'telepepper-anims/happy.qianim',
  'sad':'telepepper-anims/sad.qianim',
+ 'dance':'telepepper-anims/dance.qianim',
+ 'funny':'telepepper-anims/funny.qianim',
+ 'look_around':'telepepper-anims/look_around.qianim',
+ 'make_space':'telepepper-anims/make_space.qianim',
 }
 NAMES=tuple(sorted(CATALOG))

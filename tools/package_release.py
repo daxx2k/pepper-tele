@@ -57,7 +57,7 @@ def main():
         shutil.copy2(ROOT/name, install/name)
     notices = install/'NOTICES'
     notices.mkdir()
-    for p in (ROOT/'third_party/META-LICENSE.txt', ROOT/'third_party/PEPPER-CORE-ANIMS-LICENSE.txt', ROOT/'quest/src/main/assets/UI-FONT-NOTICE.txt'):
+    for p in (ROOT/'third_party/META-LICENSE.txt', ROOT/'third_party/PEPPER-CORE-ANIMS-LICENSE.txt', ROOT/'third_party/PEPPER-DANCE-LICENSE.txt', ROOT/'quest/src/main/assets/UI-FONT-NOTICE.txt'):
         shutil.copy2(p, notices/p.name)
     (install/'README.md').write_text('# TelePepper install package\n\nStart with [QUICKSTART.md](QUICKSTART.md). See [HELP.md](HELP.md) for controls, [PRIVACY.md](PRIVACY.md) for publication guidance, and [THIRD-PARTY.md](THIRD-PARTY.md) for notices. Source code and source build instructions are in the separate source ZIP.\n\nThis is a development build; original TelePepper code is licensed under Apache 2.0 (see LICENSE and NOTICE). Third-party terms still apply. Public release signing remains an owner decision.\n', encoding='utf-8')
     (install/'START-HERE.txt').write_text('Read QUICKSTART.md, then install the APK for each device using Install.ps1.\nUse your own robot address and pairing code. No credentials are included.\nSource builds and licensing notes are in the separate source package.\n', encoding='utf-8')

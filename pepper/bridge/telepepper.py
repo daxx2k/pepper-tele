@@ -112,6 +112,7 @@ def prepare_bottom_camera(video):
         except Exception as exc: result[name+'_error']=str(exc)
     return result
 
+from animation_resources import ResourceAnimationPlayer
 from speech_arms import SpeechArms, install_package
 
 class Robot(object):
@@ -168,8 +169,11 @@ class Robot(object):
                         raise RuntimeError('Official clip package installation failed')
             speaking_package=os.path.join(os.path.dirname(os.path.abspath(__file__)),'telepepper-speaking.pkg')
             install_package(self.session,speaking_package)
-            self.animation_player=self.session.service('ALAnimationPlayer')
-            self.available_animations=set(self.animation_player._getAnimations(_async=True).value(2000))
+            player=self.session.service('ALAnimationPlayer')
+            self.animation_player=ResourceAnimationPlayer(player,os.path.dirname(os.path.abspath(__file__)))
+            installed=set(player._getAnimations(_async=True).value(2000))
+            self.available_animations=set(p for p in installed if not p.startswith(('telepepper-anims/','telepepper-speaking/')))
+            self.available_animations.update(self.animation_player.resources)
         except Exception as exc:print('Official animation library unavailable: '+str(exc))
         self.base_collision_enabled = bool(self.motion.getExternalCollisionProtectionEnabled('Move'))
         self.life = self.session.service('ALAutonomousLife')

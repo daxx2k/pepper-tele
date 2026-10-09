@@ -73,7 +73,7 @@ public class MainActivity extends Activity {
         user=compactField(connection,"SSH username",config.optString("user",getPreferences(MODE_PRIVATE).getString("ssh_user","nao")),false);
         password=compactField(connection,"SSH password",config.optString("password",getPreferences(MODE_PRIVATE).getString("ssh_password","")),true);
         LinearLayout linkControls=ui.row();
-        connectButton=ui.button("CONNECT",false);LinearLayout.LayoutParams connectSpace=new LinearLayout.LayoutParams(0,ui.dp(48),1);connectSpace.setMargins(0,ui.dp(12),ui.dp(8),0);linkControls.addView(connectButton,connectSpace);
+        connectButton=ui.button("CONNECT",true);LinearLayout.LayoutParams connectSpace=new LinearLayout.LayoutParams(0,ui.dp(48),1);connectSpace.setMargins(0,ui.dp(12),ui.dp(8),0);linkControls.addView(connectButton,connectSpace);
         updateButton=ui.button("Update service",false);LinearLayout.LayoutParams updateSpace=new LinearLayout.LayoutParams(0,ui.dp(48),1);updateSpace.setMargins(0,ui.dp(12),0,0);linkControls.addView(updateButton,updateSpace);
         updateButton.setOnClickListener(v->{
             if(!connectButton.isEnabled()){status("Wait for the current operation to finish.");return;}

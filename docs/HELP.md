@@ -42,7 +42,7 @@ Piper/Cori is the default synthesized voice. The live puppeteer mode forwards mi
 
 Tap a camera feed to toggle its stream. Tap Lidar to toggle display; this does not disable robot obstacle sensing. Tablet preview toggles locally; Welcome displays a greeting without speech. Text, speech captions and emoji stay visible for 8 seconds, then fade out over 1 second. New content restarts the timer. The Quest preview follows the same fade; connection/settings icons stay visible. Expired content is not replayed after reconnection. LED swatches retain separate last-selected preferences for eyes, shoulders and ears. Ear LEDs support blue intensity presets.
 
-The panel contains eight official gestures: Wave left/right, Point left/right, Affirm, Refuse, Happy reaction and Sad reaction. Affirm/Refuse are expressive library clips, not necessarily head-only nods/shakes. Greeting, pointing and reaction clips come from SoftBank Robotics Pepper Core Animations; Affirm/Refuse use the installed library. The playing animation stays highlighted; other animation buttons are greyed out and cannot be selected until it finishes. STOP remains available. Playback owns the joints exclusively. Successful completion resumes live tracking from the measured robot pose with a short smooth transition. STOP, tracking loss, timeout or playback errors cancel this return. Centre the sticks before driving again.
+The panel contains twelve official gestures: Wave left/right, Point left/right, Affirm, Refuse, Happy, Sad, Dance, Funny, Look around and Make space. Affirm/Refuse are expressive library clips, not necessarily head-only nods/shakes. Greeting, pointing and reaction clips come from SoftBank Robotics Pepper Core Animations; Affirm/Refuse use the installed library. The playing animation stays highlighted; other animation buttons are greyed out and cannot be selected until it finishes. STOP remains available. Playback owns the joints exclusively. Successful completion resumes live tracking from the measured robot pose with a short smooth transition. STOP, tracking loss, timeout or playback errors cancel this return. Centre the sticks before driving again.
 
 ## Connection fails
 
@@ -99,3 +99,7 @@ With Gestures ON, releasing the left push-to-talk grip triggers an arm gesture a
 The Quest header shows the installed app version and build number. Help shows both Quest and the head-service version. On Android Pepper, configuration shows the tablet and head-service versions below the title; the participant display stays uncluttered. An older or unavailable head service is shown as unknown rather than guessed.
 
 **Update service** in tablet Connection upgrades the installed head scripts while tracking is stopped, keeps numeric base settings and stores a backup. CONNECT starts the installed service; it becomes START after connection.
+
+Dance uses the unmodified headbang clip from SoftBank Robotics Robot Focus and Android Lifecycle. Funny is the official Funny_01 gesture, not a claimed laugh animation. The other new clips come from Pepper Core Animations.
+
+Bundled gestures are played from their XML data; PTT should not pause tracking merely because speech gestures are enabled. A motor, tracking or connection fault still triggers STOP.

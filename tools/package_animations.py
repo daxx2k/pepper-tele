@@ -31,6 +31,7 @@ def main():
         archive.writestr('manifest.xml',ET.tostring(manifest))
         archive.writestr('telepepper-anims.pml',ET.tostring(package))
         archive.write(ROOT/'third_party/PEPPER-CORE-ANIMS-LICENSE.txt','COPYING')
+        archive.write(ROOT/'third_party/PEPPER-DANCE-LICENSE.txt','DANCE-COPYING')
         for p in files:archive.write(p,p.name)
     print('Packaged %d official clips, version %s'%(len(files),PACKAGE_VERSION))
 
