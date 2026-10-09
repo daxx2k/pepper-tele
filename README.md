@@ -1,8 +1,8 @@
 # TelePepper for Pepper NAOqi 2.5
 
-[Download the 0.3.4 experimental release](https://github.com/daxx2k/pepper-tele/releases/tag/v0.3.4-test) · [Pepper 2.9 branch](https://github.com/daxx2k/pepper-tele/tree/main)
+[Download the 0.3.5 experimental release](https://github.com/daxx2k/pepper-tele/releases/tag/v0.3.5-test) · [Pepper 2.9 branch](https://github.com/daxx2k/pepper-tele/tree/main)
 
-**Version 0.3.4-pepper25-test — experimental prerelease.**
+**Version 0.3.5-pepper25-test — experimental prerelease.**
 
 ## Versions and downloads
 
@@ -31,8 +31,6 @@ Only matching official animations confirmed in the installed library are selecta
 
 Build with JDK 17, SDK 34, NDK 27.2.12479018 and CMake 3.22.1: tools/build.ps1 -Target Quest. Output: dist/TelePepper-Quest25.apk. Development tests use requirements-dev.txt on the PC, never on the robot.
 
-Original code is Apache 2.0; see LICENSE, NOTICE and third-party notices. Public releases are marked experimental. The Android-Pepper project is unchanged.
+Original code is Apache 2.0; see LICENSE, NOTICE and third-party notices. Public releases are marked experimental.
 
 Automatic speech gestures use arms-only keyframe derivatives of the attributed official Pepper Core Animations through ALMotion. They do not require the 2.9 package manager. App and head-service versions appear in the Quest dashboard/Help.
-
-Automatic speech gestures use arms-only keyframe derivatives of attributed Pepper Core Animations through ALMotion. No 2.9 package-manager dependency is needed. App/head versions appear in Quest and Help.

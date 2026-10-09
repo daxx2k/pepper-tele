@@ -43,6 +43,23 @@ class Pepper25Tests(unittest.TestCase):
         self.assertEqual(start.call_count,3)
         self.assertTrue(all('--simulate' in call.args[0] for call in start.call_args_list))
 
+    def test_real_failure_stops_base_before_restart(self):
+        child=Mock();child.wait.side_effect=[1,0]
+        with patch.object(runner.signal,'signal'),patch.object(runner.subprocess,'Popen',return_value=child),patch.object(runner.time,'sleep'),patch.object(runner,'stop_after_failure',return_value=True) as cleanup:
+            self.assertEqual(runner.run('test-token-file',simulate=False),0)
+        cleanup.assert_called_once_with(False)
+
+    def test_failed_cleanup_refuses_restart(self):
+        child=Mock();child.wait.return_value=1
+        with patch.object(runner.signal,'signal'),patch.object(runner.subprocess,'Popen',return_value=child) as start,patch.object(runner,'stop_after_failure',return_value=False):
+            self.assertEqual(runner.run('test-token-file',simulate=False),1)
+        self.assertEqual(start.call_count,1)
+
+    def test_simulated_cleanup_never_starts_sdk_helper(self):
+        with patch.object(runner.subprocess,'Popen') as start:
+            self.assertTrue(runner.stop_after_failure(True))
+        start.assert_not_called()
+
     def test_pid_one_is_never_owned(self):
         import io
         with patch('builtins.open',return_value=io.StringIO('1')):self.assertIsNone(manager.owned_pid())

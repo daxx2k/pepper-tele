@@ -5,6 +5,8 @@ import android.app.AlertDialog;
 import com.jcraft.jsch.*;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
+import java.net.Socket;
+import java.net.InetSocketAddress;
 import java.security.SecureRandom;
 import java.util.Properties;
 import java.util.concurrent.CountDownLatch;
@@ -37,6 +39,18 @@ final class Pepper25Bootstrap {
         public boolean promptPassword(String message){return true;}public boolean promptPassphrase(String message){return false;}
         public String[] promptKeyboardInteractive(String destination,String name,String instruction,String[] prompt,boolean[] echo){return prompt.length==1&&echo.length==1&&!echo[0]?new String[]{secret}:null;}
     }
+    private static void requireInactive(String head)throws IOException {
+        try(Socket probe=new Socket()){
+            probe.connect(new InetSocketAddress(head,9570),1500);
+            throw new IOException("Exit the current TelePepper session before updating its service.");
+        }catch(java.net.ConnectException stopped){/* No active listener. */}
+    }
+    private static void backup(ChannelSftp sftp,String source,String destination)throws Exception {
+        byte[] data;
+        try(InputStream in=sftp.get(source)){data=read(in).getBytes(StandardCharsets.UTF_8);}
+        catch(SftpException missing){if(missing.id==ChannelSftp.SSH_FX_NO_SUCH_FILE)return;throw missing;}
+        sftp.put(new ByteArrayInputStream(data),destination);
+    }
     static void connect(Activity activity,String head,String user,String password,Listener listener){
         new Thread(()->{
             Session session=null;ChannelSftp sftp=null;
@@ -67,11 +81,19 @@ final class Pepper25Bootstrap {
                 boolean running=false;
                 if(installed){JSONObject state=new JSONObject(exec(session,"python "+ROOT+"/manage25.py status"));running=state.optBoolean("running",false);}
                 if(!running){
-                    listener.progress("Installing the head service / motors stay stopped...");
+                    requireInactive(head);
+                    listener.progress("Staging the head service / preserving base settings...");
                     try{sftp.mkdir(ROOT);}catch(SftpException exists){sftp.stat(ROOT);}
+                    String stage=ROOT+"/update-"+System.currentTimeMillis(),saved=stage+"-backup";
+                    sftp.mkdir(stage);sftp.mkdir(saved);
                     for(String name:activity.getAssets().list("pepper25"))if(name.endsWith(".py")){
-                        try(InputStream in=activity.getAssets().open("pepper25/"+name)){sftp.put(in,ROOT+"/"+name);}
+                        try(InputStream in=activity.getAssets().open("pepper25/"+name)){sftp.put(in,stage+"/"+name);}
                     }
+                    exec(session,"python "+stage+"/deployment_settings.py "+ROOT+"/telepepper.py "+stage+"/telepepper.py");
+                    exec(session,"python -c 'import glob,py_compile; [py_compile.compile(p,doraise=True) for p in glob.glob(\""+stage+"/*.py\")]'");
+                    requireInactive(head);
+                    for(String name:activity.getAssets().list("pepper25"))if(name.endsWith(".py"))backup(sftp,ROOT+"/"+name,saved+"/"+name);
+                    for(String name:activity.getAssets().list("pepper25"))if(name.endsWith(".py"))exec(session,"mv "+stage+"/"+name+" "+ROOT+"/"+name);
                     if(!installed){byte[] bytes=new byte[24];new SecureRandom().nextBytes(bytes);StringBuilder text=new StringBuilder();for(byte b:bytes)text.append(String.format("%02x",b&255));pairing=text.toString();}
                     sftp.put(new ByteArrayInputStream(pairing.getBytes(StandardCharsets.UTF_8)),ROOT+"/.telepepper-token");sftp.chmod(0600,ROOT+"/.telepepper-token");
                 }

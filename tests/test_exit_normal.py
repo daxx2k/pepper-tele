@@ -65,6 +65,42 @@ class ExitNormalTests(unittest.TestCase):
         with self.assertRaises(RuntimeError):s.return_to_normal({'confirmed':True})
         s.state.robot.life.setState.assert_not_called()
 
+    def test_stop_during_autonomy_handoff_rolls_back_and_never_reports_normal(self):
+        s=self.make_service(False)
+        def mode_change(mode,**kw):
+            if mode=='solitary':s.state.stop_generation+=1
+            return Mock()
+        s.state.robot.life.setState.side_effect=mode_change
+        with self.assertRaisesRegex(RuntimeError,'handoff'):
+            s.return_to_normal({'confirmed':True})
+        self.assertFalse(s.normal_exit);self.assertFalse(s.closing)
+        self.assertEqual([c.args[0] for c in s.state.robot.life.setState.call_args_list],['solitary','disabled'])
+
+    def test_stop_interrupts_unfinished_normal_future(self):
+        s=self.make_service(False);pending=Mock();pending.isFinished.return_value=False
+        def mode_change(mode,**kw):
+            if mode=='solitary':s.state.stop_generation+=1;return pending
+            return Mock()
+        s.state.robot.life.setState.side_effect=mode_change
+        with self.assertRaisesRegex(RuntimeError,'handoff'):
+            s.return_to_normal({'confirmed':True})
+        pending.cancel.assert_called_once()
+        s.state.robot.life.getState.assert_not_called()
+        self.assertFalse(s.closing)
+
+    def test_failed_autonomy_rollback_still_attempts_base_stop_and_unblocks_exit(self):
+        s=self.make_service(False)
+        def mode_change(mode,**kw):
+            f=Mock()
+            if mode=='solitary':s.state.stop_generation+=1
+            else:f.value.side_effect=RuntimeError('rollback failed')
+            return f
+        s.state.robot.life.setState.side_effect=mode_change
+        with self.assertRaisesRegex(RuntimeError,'rollback failed'):
+            s.return_to_normal({'confirmed':True})
+        self.assertGreaterEqual(s.state.robot.stop.call_count,2)
+        self.assertFalse(s.closing);self.assertFalse(s.normal_exit)
+
 class ExitProtocolTests(unittest.TestCase):
     def test_operator_protocol_requires_confirmation_and_exits_after_ack(self):
         reserve=socket.socket();reserve.bind(('127.0.0.1',0));port=reserve.getsockname()[1];reserve.close()

@@ -532,7 +532,12 @@ class WoZ(object):
             try:conn.sendall((json.dumps({'error':str(exc)})+'\n').encode('utf-8'))
             except Exception:pass
         finally:
-            with self.service.state.lock:self.service.state.robot.speech_arms.end('piper')
+            try:
+                with self.service.state.lock:self.service.state.robot.speech_arms.end('piper')
+            except Exception as exc:
+                self.event('speech_gesture_cancel_failed',reason=str(exc))
+                try:self.service.state.disarm('Speech gesture cancellation failed')
+                except Exception as stop_error:self.event('speech_gesture_stop_failed',reason=str(stop_error))
             self.clip_future=None
             if path:
                 try:os.unlink(path)

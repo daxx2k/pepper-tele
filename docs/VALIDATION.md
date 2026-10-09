@@ -1,5 +1,15 @@
 # Validation - Pepper 2.5 trial build
 
+## Current review: 0.3.5-test (2026-10-09)
+
+The current review passed 173 Python tests for Pepper 2.9 and 184 for Pepper 2.5. Seventeen standalone native tests ran on Quest (math, panel interaction, controller chords, watchdog/start flow and loopback networking), plus the Java speech-queue and WAV tests on the PC. All three APKs built successfully. These tests do not command the real robot or measure physical latency.
+
+Both variants contain STOP cancellation fault handling, Piper cleanup and STOP-aware normal-mode handoff fixes. Deployment preserves literal numeric base settings, validates the merged settings before replacement and stages/compiles scripts with backups. Pepper 2.9 exposes Update service on its tablet; Pepper 2.5 updates only after the current service is exited. The 2.5 supervisor confirms base cleanup before restarting a failed child; its loopback simulated Exit completed without restart.
+
+The 0.3.5 builds have not been installed on the lab robot during this review. Physical START/STOP timing, speech gesture execution, head/base independence during gestures, pose alignment and sustained Wi-Fi stability still require a supervised trial. A real Pepper 2.5 trial remains outstanding. Sub-40 ms physical motion latency is not established. True backdrivability/compliant manual arm guidance is not implemented: engaged tracking sets joint stiffness to 1.0.
+
+Source, APK contents, release archives and all published Git history are checked for known local credentials and identifiers before publication. The remaining sections are historical test records and may refer to earlier versions.
+
 Physical operation on NAOqi 2.5 is not yet verified. This is a supervised trial build.
 
 - Separate sanitized fork; distinct Quest application ID; Pepper tablet module/UI removed.
@@ -19,3 +29,7 @@ Both-grip toggle no longer requires presses within 0.2 seconds. Left-grip releas
 Final release check: 169 Python tests passed. Both variant builds completed; 2.9 apps installed. Physical 2.5 compatibility and speech gesture performance are not established by the mock tests.
 
 The camera cadence test now isolates its fake clock/sleep from background test threads; production camera code was unchanged. Final full suites pass: 161 for 2.9 and 169 for 2.5.
+
+## 0.3.5 review fixes
+
+Animation cancellation failures no longer skip base STOP. Piper temporary files and clip locks are cleaned even if gesture cancellation fails. A newer STOP during normal-mode handoff cancels Exit and requests disabled autonomy again. These paths have fault-injection tests; physical acknowledgement timing still needs operator verification.

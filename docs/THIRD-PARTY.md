@@ -8,4 +8,6 @@ The Gradle 8.5 wrapper is included under Apache 2.0; see third_party/GRADLE-LICE
 
 ## Pepper Core Animations
 
-Six unmodified clips (Hello_01, Hello_09, PointFrontL_01, PointFrontR_01, NiceReaction_01, SadReaction_01) from https://github.com/softbankrobotics-labs/pepper-core-anims are bundled in the telepepper-anims package. Copyright 2011-2019 SoftBank Robotics Europe; BSD 3-Clause terms are reproduced in third_party/PEPPER-CORE-ANIMS-LICENSE.txt and the package COPYING file. The package is installed through Pepper PackageManager; the system animation library is not modified.
+Six unmodified clips (Hello_01, Hello_09, PointFrontL_01, PointFrontR_01, NiceReaction_01, SadReaction_01) from https://github.com/softbankrobotics-labs/pepper-core-anims are bundled in the telepepper-anims package. Copyright 2011-2019 SoftBank Robotics Europe; BSD 3-Clause terms are reproduced in third_party/PEPPER-CORE-ANIMS-LICENSE.txt and the package COPYING file. This source includes the original 2.9 resource package for attribution/reference, but the 2.5 app does not install it. Manual animations use only confirmed paths in the robot library.
+
+Automatic speech gestures use arm-only keyframe derivatives of the same Pepper Core Animations, under the same BSD 3-Clause terms. The 2.9 runtime packages those derivatives separately; the 2.5 runtime uses the attributed curves in speech_clip_data.py through ALMotion. Head, hips and wheel curves are excluded.

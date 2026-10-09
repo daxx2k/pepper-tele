@@ -46,3 +46,7 @@ Wrong firmware: 2.9 is rejected before installation. Authentication: use the rob
 Report firmware, the exact error and failing feature without passwords/pairing data. Do not install a Pepper Android APK on this robot.
 
 With Gestures ON, release the left push-to-talk grip to trigger arm gestures. Hold both grips for 0.35 seconds to toggle the mode. See HELP.md for timing and safety behaviour.
+
+## Update an existing 2.5 installation
+
+Install the new Quest25 APK using the same signing key. Use Exit TelePepper to end the existing service, then CONNECT again in Quest Connection settings. A running service is reused without replacing it; an inactive service is updated from the APK. Updates stage and compile the scripts first, keep backups in the robot's telepepper25 folder, preserve numeric base-security/test-cap settings and retain pairing. Other custom source edits are superseded by the bundle. No firmware, boot hooks or system dependencies are changed.

@@ -37,13 +37,16 @@ def paired_status(port):
     with open(TOKEN_FILE) as source:token=source.read().strip()
     if len(token)<12:raise RuntimeError('Pairing token missing')
     sock=socket.create_connection(('127.0.0.1',port),1)
+    stream=None
     try:
         sock.settimeout(2);stream=sock.makefile('rb')
         sock.sendall((json.dumps({'token':token,'role':'operator'})+'\n').encode('utf-8'))
         if 'observer' not in json.loads(stream.readline()):raise RuntimeError('Pairing refused')
         sock.sendall(b'{"cmd":"status"}\n')
         return json.loads(stream.readline())
-    finally:sock.close()
+    finally:
+        if stream is not None:stream.close()
+        sock.close()
 
 def start(port=9570,simulate=False):
     version=check_runtime(simulate)
