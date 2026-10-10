@@ -18,14 +18,16 @@ For **Wizard of Oz research**, an operator controls the robot's speech and behav
 | --- | --- | --- |
 | Pepper NAOqi 2.9 | Meta Quest VR headset | [TelePepper-Quest.apk](https://github.com/daxx2k/pepper-tele/releases/download/v0.3.8-test/TelePepper-Quest.apk) |
 | Pepper NAOqi 2.9 | Android tablet on the Pepper robot | [TelePepper-Pepper.apk](https://github.com/daxx2k/pepper-tele/releases/download/v0.3.8-test/TelePepper-Pepper.apk) |
-| Pepper NAOqi 2.5 | Meta Quest VR headset | [TelePepper-Quest25.apk](https://github.com/daxx2k/pepper-tele/releases/download/v0.3.8-test/TelePepper-Quest25.apk) |
+| Pepper NAOqi 2.5 | Meta Quest VR headset | [TelePepper-Quest25.apk](https://github.com/daxx2k/pepper-tele/releases/download/v0.3.9-pepper25-test/TelePepper-Quest25.apk) |
 
 For first setup, download the complete package with English instructions and installation tools:
 
 - [Pepper 2.9 install ZIP](https://github.com/daxx2k/pepper-tele/releases/download/v0.3.8-test/TelePepper-Pepper29-install-0.3.8.zip) — includes both Quest and Pepper tablet apps.
-- [Pepper 2.5 install ZIP](https://github.com/daxx2k/pepper-tele/releases/download/v0.3.8-test/TelePepper-Pepper25-install-0.3.8.zip) — includes the Quest25 app; no Pepper Android tablet app is required.
+- [Pepper 2.5 install ZIP](https://github.com/daxx2k/pepper-tele/releases/download/v0.3.9-pepper25-test/TelePepper-Pepper25-install-0.3.9.zip) — includes the Quest25 app; no Pepper Android tablet app is required.
 
 Use the package matching your robot's NAOqi version. Source ZIPs are for developers and are not required to install the apps. [View all releases](https://github.com/daxx2k/pepper-tele/releases).
+
+**Pepper NAOqi 2.5 users:** use the [0.3.9 connection/setup update](https://github.com/daxx2k/pepper-tele/releases/tag/v0.3.9-pepper25-test). It fixes warning-prefixed firmware replies and opens setup in the headset Home environment. The Pepper 2.9 downloads above remain on 0.3.8.
 
 ## Choose your robot software version
 
