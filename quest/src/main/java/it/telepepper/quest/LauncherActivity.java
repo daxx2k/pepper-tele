@@ -19,8 +19,8 @@ public class LauncherActivity extends Activity {
     private boolean diagnosticStarted;
     private StudioStyle ui;
     private int ink,muted,accent;
-    private TextView label(String value,int size,int color){return ui.text(value,size,color,size>=24);}
-    private EditText field(LinearLayout box,String title,String value,boolean secret){return ui.field(box,title,value,secret);}
+    private TextView label(String value,int size,int color){return ConnectionForm.label(ui,value,size,color);}
+    private EditText field(LinearLayout box,String title,String value,boolean secret){return ConnectionForm.field(ui,box,title,value,secret);}
     @Override public void onCreate(Bundle state){
         StudioStyle.applyTheme(this);super.onCreate(state);
         if(checkSelfPermission(Manifest.permission.RECORD_AUDIO)!=PackageManager.PERMISSION_GRANTED)requestPermissions(new String[]{Manifest.permission.RECORD_AUDIO},42);
@@ -29,10 +29,10 @@ public class LauncherActivity extends Activity {
         voiceProbe=new NaturalVoice(this);
         ScrollView scroll=new ScrollView(this);scroll.setFillViewport(true);scroll.setBackgroundColor(ui.background);
         LinearLayout root=new LinearLayout(this);root.setOrientation(1);root.setPadding(ui.dp(28),ui.dp(24),ui.dp(28),ui.dp(28));android.widget.FrameLayout.LayoutParams bounds=new android.widget.FrameLayout.LayoutParams(-1,-2,android.view.Gravity.TOP|android.view.Gravity.CENTER_HORIZONTAL);scroll.addView(root,bounds);root.addOnLayoutChangeListener((v,l,t,r,b,ol,ot,orr,ob)->{int target=Math.min(scroll.getWidth(),ui.dp(860));if(root.getLayoutParams().width!=target){root.getLayoutParams().width=target;root.requestLayout();}});
-        LinearLayout heading=ui.row();heading.setGravity(android.view.Gravity.CENTER_VERTICAL);heading.setPadding(ui.dp(20),ui.dp(14),ui.dp(20),ui.dp(14));heading.setBackground(ui.surface(ui.surfaceColor,22));ImageView mark=new ImageView(this);mark.setImageResource(R.drawable.ic_telepepper);heading.addView(mark,new LinearLayout.LayoutParams(ui.dp(48),ui.dp(48)));LinearLayout titles=ui.column();titles.setPadding(ui.dp(16),0,0,0);titles.addView(label("TelePepper 2.5 "+it.telepepper.ui.VersionInfo.label(this),30,ink));titles.addView(label("Connection settings",16,muted));heading.addView(titles,new LinearLayout.LayoutParams(0,-2,1));root.addView(heading);
+        LinearLayout heading=ui.row();heading.setGravity(android.view.Gravity.CENTER_VERTICAL);heading.setPadding(ui.dp(12),ui.dp(10),ui.dp(12),ui.dp(10));heading.setBackground(ui.surface(ui.surfaceColor,22));ImageView mark=new ImageView(this);mark.setImageResource(R.drawable.ic_telepepper);heading.addView(mark,new LinearLayout.LayoutParams(ui.dp(36),ui.dp(36)));LinearLayout titles=ui.column();titles.setPadding(ui.dp(16),0,0,0);titles.addView(label("TelePepper 2.5 "+it.telepepper.ui.VersionInfo.label(this),30,ink));titles.addView(label("Connection settings",16,muted));heading.addView(titles,new LinearLayout.LayoutParams(0,-2,1));root.addView(heading);
         root.addView(label("Connect directly to Pepper 2.5. No tablet app or runtime PC required.",17,muted));
-        LinearLayout card=ui.card();card.addView(ui.text("ROBOT CONNECTION",13,accent,true));
-        LinearLayout.LayoutParams cp=new LinearLayout.LayoutParams(-1,-2);cp.setMargins(0,ui.dp(20),0,ui.dp(16));root.addView(card,cp);
+        LinearLayout card=ui.card();card.setPadding(ui.dp(14),ui.dp(12),ui.dp(14),ui.dp(12));card.addView(ui.text("ROBOT CONNECTION",13,accent,true));
+        LinearLayout.LayoutParams cp=new LinearLayout.LayoutParams(-1,-2);cp.setMargins(0,ui.dp(10),0,ui.dp(10));root.addView(card,cp);
         EditText host=field(card,"ROBOT HEAD ADDRESS",prefs.getString("host",""),false);
         EditText token=new EditText(this);token.setText(prefs.getString("token",""));
         EditText sshUser=field(card,"SSH USER",Pepper25Credentials.user(this,prefs.getString("host","")),false);
@@ -46,7 +46,7 @@ public class LauncherActivity extends Activity {
                 public void progress(String message){runOnUiThread(()->{if(!isFinishing()&&!isDestroyed())status.setText(message);});}
                 public void failed(String message){runOnUiThread(()->{if(!isFinishing()&&!isDestroyed()){connect.setEnabled(true);status.setText("Connection failed: "+message);}});}
                 public void ready(String pairing){runOnUiThread(()->{if(isFinishing()||isDestroyed())return;
-                    token.setText(pairing);prefs.edit().putString("host",h).putString("token",pairing).apply();
+                    token.setText(pairing);ConnectionStore.save(prefs,h,pairing);
                     try{Pepper25Credentials.save(LauncherActivity.this,h,u,p);status.setText("Connected to Pepper 2.5. Open VR and hold A + X to start.");}
                     catch(Exception storage){status.setText("Connected. Password could not be saved; re-enter it next time.");}
                     connect.setEnabled(true);
@@ -68,13 +68,13 @@ public class LauncherActivity extends Activity {
             if(!diagnosticStarted&&getIntent().getBooleanExtra("voice_self_test",false)&&(getApplicationInfo().flags&android.content.pm.ApplicationInfo.FLAG_DEBUGGABLE)!=0){diagnosticStarted=true;voiceProbe.speak("Hello, I am Pepper. How can I help you today?","en-GB");final long deadline=android.os.SystemClock.elapsedRealtime()+30000;
                 voiceHandler.postDelayed(new Runnable(){public void run(){if(isFinishing()||isDestroyed())return;byte[] pcm=voiceProbe.take();if(pcm!=null){try(java.io.FileOutputStream out=openFileOutput("voice-self-test.pcm",MODE_PRIVATE)){out.write(pcm);android.util.Log.i("TelePepper","Cori self-test PASS: PCM16 16000 Hz mono, bytes="+pcm.length);}catch(Exception e){android.util.Log.e("TelePepper","Voice self-test output failed",e);}return;}if(android.os.SystemClock.elapsedRealtime()<deadline)voiceHandler.postDelayed(this,100);else android.util.Log.e("TelePepper","Cori self-test failed: "+voiceProbe.status());}},100);
             }}},300);
-        Button find=ui.button("Find Pepper on Wi-Fi",false);card.addView(find,ui.buttonSpace());
+        Button find=ui.button("Find Pepper on Wi-Fi",false);root.addView(find,2,ui.buttonSpace());
         find.setOnClickListener(v->{find.setEnabled(false);status.setText("Searching for TelePepper on this network...");new Thread(()->{
-            try{java.util.List<PepperDiscovery.Robot> robots=PepperDiscovery.find();runOnUiThread(()->{if(isFinishing())return;find.setEnabled(true);
+            try{java.util.List<PepperDiscovery.Robot> robots=PepperDiscovery.find(ConnectionStore.knownPairings(prefs));runOnUiThread(()->{if(isFinishing())return;find.setEnabled(true);
                 if(robots.isEmpty()){status.setText("No TelePepper found. Start the robot service and check Wi-Fi. You can also enter its head address.");return;}
-                if(robots.size()==1){host.setText(robots.get(0).host);status.setText("Pepper found. Enter its pairing code and check connection.");return;}
+                if(robots.size()==1){host.setText(robots.get(0).host);token.setText(ConnectionStore.pairingFor(prefs,robots.get(0).host));sshUser.setText(Pepper25Credentials.user(this,robots.get(0).host));sshPassword.setText(Pepper25Credentials.password(this,robots.get(0).host));status.setText("Pepper found. Saved SSH details restored where available. Press CONNECT.");return;}
                 String[] names=new String[robots.size()];for(int i=0;i<names.length;i++)names[i]=robots.get(i).name+"  /  "+robots.get(i).host;
-                new android.app.AlertDialog.Builder(this).setTitle("Choose Pepper").setItems(names,(d,i)->{host.setText(robots.get(i).host);status.setText("Pepper selected. Press CONNECT to start the head service.");}).show();
+                new android.app.AlertDialog.Builder(this).setTitle("Choose Pepper").setItems(names,(d,i)->{host.setText(robots.get(i).host);token.setText(ConnectionStore.pairingFor(prefs,robots.get(i).host));sshUser.setText(Pepper25Credentials.user(this,robots.get(i).host));sshPassword.setText(Pepper25Credentials.password(this,robots.get(i).host));status.setText("Pepper selected. Press CONNECT to start the head service.");}).show();
             });}catch(Exception e){runOnUiThread(()->{if(!isFinishing()){find.setEnabled(true);status.setText("Network search unavailable. Enter the robot head address.");}});}
         },"pepper-discovery").start();});
         Button test=ui.button("Check connection",false);card.addView(test,ui.buttonSpace());
@@ -90,13 +90,13 @@ public class LauncherActivity extends Activity {
                 final String result=message;runOnUiThread(()->{if(!isFinishing()){status.setText(result);test.setEnabled(true);}});
             },"connection-check").start();
         });
-        Button enter=ui.button("Save and open VR studio",true);root.addView(enter,ui.buttonSpace());
+        Button enter=ui.button("Save and open VR studio",true);
         enter.setOnClickListener(v->{String h=host.getText().toString().trim(),t=token.getText().toString().trim();
             if(!ConnectionStore.validHost(h)||t.length()<12){status.setText("Press CONNECT before opening VR.");return;}
-            prefs.edit().putString("host",h).putString("token",t).apply();HeadsetNavigation.openStudio(this);
+            ConnectionStore.save(prefs,h,t);HeadsetNavigation.openStudio(this);
         });
         root.addView(label("Hold A + X: Start / Pause     Y: Controls     B: STOP\nLeft stick: translate   |   Right stick: turn\nTriggers: hands   |   Left grip: talk",16,muted));
-        setContentView(scroll);if(getIntent().getBooleanExtra("enter_vr",false))enter.performClick();
+        ConnectionForm.show(this,ui,root,scroll,enter);if(getIntent().getBooleanExtra("enter_vr",false))enter.performClick();
     }
     @Override protected void onDestroy(){if(voiceProbe!=null)voiceProbe.close();super.onDestroy();}
 }
