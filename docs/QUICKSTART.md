@@ -1,4 +1,4 @@
-# TelePepper for the Pepper humanoid robot (NAOqi 2.9) - 0.3.8-test
+# TelePepper for the Pepper humanoid robot (NAOqi 2.9) - 0.3.9-test
 
 Pepper is a wheeled humanoid robot developed by SoftBank Robotics. Meta Quest is the virtual reality headset used to control it. NAOqi is the robot's software; install the TelePepper variant that matches its version.
 
@@ -7,7 +7,7 @@ This package contains the Pepper Android tablet app and the native Quest app. Du
 ## Requirements
 
 - Pepper with an Android tablet and NAOqi 2.9. The development robot runs 2.9.5.172, Python 2.7 with qi/Pillow and user systemd.
-- Quest 3, developer mode, USB debugging and authorized controllers.
+- Quest 3/3S with Meta Horizon OS v69 or newer, developer mode, USB debugging and authorized controllers.
 - A PC with Android platform-tools (ADB) for sideloading.
 - A shared Wi-Fi network that permits device-to-device traffic; SSH access to your robot head for first setup.
 
@@ -29,7 +29,7 @@ The Quest installer downloads and installs the pinned offline British English Co
 1. Open TelePepper on Pepper's tablet. In Connection, enter your robot's own SSH username and password. The tablet-to-head address defaults to its internal address, `198.18.0.1`.
 2. Press CONNECT (the button becomes START after connection) and confirm the SSH identity for your robot. First setup checks dependencies and installs the bundled head bridge. CONNECT starts the service disarmed; it does not wake or move Pepper. The service does not start at robot boot.
 3. Copy the private Quest pairing code shown on the tablet. Press START on the tablet to prepare Pepper and open the participant display; leave room for its operating posture.
-4. Open TelePepper on Quest from the sideloaded/Unknown Sources library. In Connection settings, select Find Pepper on Wi-Fi, choose your robot, enter its pairing code, then save and open VR. If discovery is unavailable, enter the robot HEAD Wi-Fi address shown under For Robot Browser on Pepper's tablet.
+4. Open TelePepper on Quest from the sideloaded/Unknown Sources library. Connection settings open as a panel in the headset Home environment, using its current environment/passthrough setting. Select Find Pepper on Wi-Fi, choose your robot, enter its pairing code, then save and open VR. If discovery is unavailable, enter the robot HEAD Wi-Fi address shown under For Robot Browser on Pepper's tablet.
 5. Centre the sticks and look forward. Hold A + X for 0.75 seconds, or select START, to calibrate and engage tracking.
 
 Discovery finds a running TelePepper service. Wi-Fi client isolation can block it. A subsequent CONNECT starts an already installed bridge without overwriting manual head updates; updating the Android APK alone does not replace a previously configured head bridge. Keep a backup of custom head scripts when upgrading an existing installation.
