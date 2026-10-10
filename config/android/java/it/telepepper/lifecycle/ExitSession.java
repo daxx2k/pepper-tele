@@ -9,8 +9,16 @@ import org.json.JSONObject;
 
 /** A deliberate close is the only client action that resumes autonomous behavior. */
 public final class ExitSession {
+    public interface Failure { void failed(String message); }
     private ExitSession() {}
     public static void close(Activity activity, String host, String token) {
+        close(activity,host,token,activity::finishAndRemoveTask,message->{
+            if (!activity.isFinishing()) new AlertDialog.Builder(activity)
+                .setTitle("Exit not confirmed").setMessage("Pepper could not confirm normal mode. "+message)
+                .setPositiveButton("OK",null).show();
+        });
+    }
+    public static void close(Activity activity, String host, String token, Runnable closed, Failure failed) {
         new Thread(() -> {
             try (Socket socket = new Socket()) {
                 socket.connect(new InetSocketAddress(host, 9570), 2500);
@@ -26,13 +34,10 @@ public final class ExitSession {
                 JSONObject reply = new JSONObject(line);
                 if (!reply.optBoolean("ok") || !reply.optBoolean("normal_mode"))
                     throw new IOException(reply.optString("error", "Normal mode was not confirmed"));
-                activity.runOnUiThread(activity::finishAndRemoveTask);
+                activity.runOnUiThread(()->{if(!activity.isFinishing())closed.run();});
             } catch (Exception error) {
                 activity.runOnUiThread(() -> {
-                    if (!activity.isFinishing()) new AlertDialog.Builder(activity)
-                        .setTitle("Exit not confirmed")
-                        .setMessage("Pepper could not confirm normal mode. "+error.getMessage())
-                        .setPositiveButton("OK", null).show();
+                    if (!activity.isFinishing()) failed.failed(error.getMessage());
                 });
             }
         }, "TelePepper-exit").start();

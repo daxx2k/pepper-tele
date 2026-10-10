@@ -1,4 +1,4 @@
-# TelePepper for the Pepper humanoid robot (NAOqi 2.9) - 0.3.9-test
+# TelePepper for the Pepper humanoid robot (NAOqi 2.9) - 0.3.10-test
 
 Pepper is a wheeled humanoid robot developed by SoftBank Robotics. Meta Quest is the virtual reality headset used to control it. NAOqi is the robot's software; install the TelePepper variant that matches its version.
 
@@ -33,6 +33,8 @@ The Quest installer downloads and installs the pinned offline British English Co
 5. Centre the sticks and look forward. Hold A + X for 0.75 seconds, or select START, to calibrate and engage tracking.
 
 Discovery finds a running TelePepper service. Wi-Fi client isolation can block it. A subsequent CONNECT starts an already installed bridge without overwriting manual head updates; updating the Android APK alone does not replace a previously configured head bridge. Keep a backup of custom head scripts when upgrading an existing installation.
+
+If the VR studio has never connected to the robot, Exit closes it and returns to Home. If a connection was lost or normal mode could not be confirmed, choose **Close VR studio only** to close the headset scene. This does not confirm robot STOP or normal autonomy; reconnect or use the robot controls if needed.
 
 ## Controls
 

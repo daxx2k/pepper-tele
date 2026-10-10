@@ -8,6 +8,12 @@ import android.content.Intent;
 final class HeadsetNavigation {
     private HeadsetNavigation() {}
 
+    static void closeStudio(Activity activity) {
+        activity.startActivity(new Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_HOME)
+                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
+        activity.finishAndRemoveTask();
+    }
+
     static void openStudio(Activity activity) {
         Intent studio = new Intent(activity, TeleoperationActivity.class)
                 .setAction(Intent.ACTION_MAIN).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
