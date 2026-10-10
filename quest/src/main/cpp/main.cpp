@@ -25,6 +25,7 @@
 #include "laser_map.h"
 #include "start_flow.h"
 #include "deferred_gesture.h"
+#include "exit_flow.h"
 #include "panel_layout.h"
 #include "panel_anchor.h"
 #include "pointer_ray.h"
@@ -86,7 +87,7 @@ class App {
     SpeechGripChord speechChord;
     nlohmann::json pendingRobotLimit;
     unsigned limitStopAck=0;double limitDeadline=0;
-    bool pendingExitNormal=false;unsigned exitStopAck=0;double exitDeadline=0;
+    bool pendingExitNormal=false,waitingExitNormal=false,exitUnconfirmed=false;unsigned exitStopAck=0;double exitDeadline=0,exitFailurePoll=0;
     XrVector2f pointer{},lastPointer{};
     const bool torsoAssist=true;
     std::array<float,2> torsoCommand{};
@@ -356,6 +357,7 @@ void main(){
         rows.push_back({fahrenheit?"F":"C","Switch Celsius / Fahrenheit",{{"cmd","local_temperature_unit"}}});
         rows.push_back({"Reconnect","Reconnect control, video and audio",{{"cmd","local_reconnect"}}});
         rows.push_back({"Exit TelePepper","Stop control and return Pepper to normal mode",{{"cmd","local_exit_normal"}}});
+        if(exitUnconfirmed)rows.push_back({"Close VR studio only","Robot STOP / normal mode was not confirmed",{{"cmd","local_exit_headset"}}});
         rows.push_back({"Connection settings","Edit robot address and pairing",{{"cmd","local_settings"}}});
         rows.push_back({"Move window","Grip + trigger: move freely / right stick scales",{{"cmd","local_panel_move"}}});
         rows.push_back({roomLocked?"Unpin window":"Pin window","Toggle room lock / head follow",{{"cmd","local_panel_lock"}}});
@@ -375,7 +377,7 @@ void main(){
         if(c=="local_robot_limit"||c=="local_pose_mirror"||c=="local_torso_assist"||c=="local_start"||c=="local_stop"||c=="local_calibrate"||c=="gesture")return 0;
         if(c=="speech_gestures"||c=="speech_on_tablet"||c=="local_voice_mode"||c=="local_natural_voice"||c=="say"||c=="speech_stop"||c=="local_listen"||c=="local_volume")return 1;
         if(c=="tablet")return 2;
-        if(c=="local_exit_normal"||c=="local_settings"||c=="local_reconnect"||c=="base_protection"||c=="local_panel_move"||c=="local_panel_resize"||c=="local_panel_lock"||c=="local_panel_here")return 4;
+        if(c=="local_exit_normal"||c=="local_exit_headset"||c=="local_settings"||c=="local_reconnect"||c=="base_protection"||c=="local_panel_move"||c=="local_panel_resize"||c=="local_panel_lock"||c=="local_panel_here")return 4;
         if(c.find("local_offset_")==0)return 5;
         if(c=="led"||c=="local_led_target"||c=="local_led_preset")return 6;
         return 2;
@@ -414,7 +416,7 @@ void main(){
         return in;
     }
     void beginStart(bool animation=false,bool recalibrate=false){
-        if(pendingExitNormal){inputMessage="Closing teleoperation / wait for STOP";inputMessageUntil=milliseconds()+3000;return;}
+        if(pendingExitNormal||waitingExitNormal){inputMessage="Closing teleoperation / wait for STOP";inputMessageUntil=milliseconds()+3000;return;}
         if(!pendingRobotLimit.is_null()){inputMessage="Changing limits / wait before START";inputMessageUntil=milliseconds()+3000;return;}
         if(windowGesture||layoutEditing){inputMessage="Release the window before starting motion";inputMessageUntil=milliseconds()+3000;return;}
         if(startFlow.active())return;
@@ -470,8 +472,15 @@ void main(){
         else if(cmd=="local_stop"){pendingExitNormal=false;pendingRobotLimit=nullptr;startFlow.cancel();pendingGesture.cancel();network->requestStop(true);}
         else if(cmd=="local_reconnect")network->requestReconnect();
         else if(cmd=="local_settings")openSettings();
+        else if(cmd=="local_exit_headset"){
+            if(exitUnconfirmed){startFlow.cancel();pendingGesture.cancel();network->requestStop();
+                JNIEnv* env=nullptr;app->activity->vm->AttachCurrentThread(&env,nullptr);jclass cls=env->GetObjectClass(app->activity->clazz);
+                env->CallVoidMethod(app->activity->clazz,env->GetMethodID(cls,"closeVrStudio","()V"));env->DeleteLocalRef(cls);}
+        }
         else if(cmd=="local_exit_normal"){
+            if(pendingExitNormal||waitingExitNormal)return;
             startFlow.cancel();pendingGesture.cancel();pendingRobotLimit=nullptr;
+            exitUnconfirmed=false;
             pendingExitNormal=true;exitStopAck=network->stopAcknowledged;exitDeadline=milliseconds()+5000;
             network->requestStop();inputMessage="Stopping before returning Pepper to normal";inputMessageUntil=exitDeadline;
         }
@@ -685,14 +694,26 @@ void main(){
             }
         }
         if(pendingExitNormal){
-            auto d=network->snapshot();
-            if(!network->connected||milliseconds()>exitDeadline){pendingExitNormal=false;inputMessage="Exit cancelled / STOP was not confirmed";inputMessageUntil=milliseconds()+5000;}
-            else if(network->stopAcknowledged>exitStopAck&&!network->armed&&milliseconds()-network->lastSnapshot<750&&!d.value("stopping",true)&&d.value("stop_error",std::string()).empty()){
+            auto decision=exit_flow::evaluate(network->connected,network->generation>0,network->armed,
+                network->stopAcknowledged,exitStopAck,milliseconds(),exitDeadline,milliseconds()-network->lastSnapshot,network->snapshot());
+            if(decision==exit_flow::Decision::OfferLocalClose){pendingExitNormal=false;exitUnconfirmed=true;menuOpen=true;
+                inputMessage="STOP / normal mode not confirmed: choose Close VR studio only or retry Exit";inputMessageUntil=milliseconds()+10000;}
+            else if(decision==exit_flow::Decision::CloseLocal||decision==exit_flow::Decision::RestoreNormal){
                 pendingExitNormal=false;
+                waitingExitNormal=decision==exit_flow::Decision::RestoreNormal;
                 JNIEnv* env=nullptr;app->activity->vm->AttachCurrentThread(&env,nullptr);
                 jclass cls=env->GetObjectClass(app->activity->clazz);
-                env->CallVoidMethod(app->activity->clazz,env->GetMethodID(cls,"exitTeleoperation","()V"));env->DeleteLocalRef(cls);
+                const char* method=waitingExitNormal?"exitTeleoperation":"closeVrStudio";
+                env->CallVoidMethod(app->activity->clazz,env->GetMethodID(cls,method,"()V"));env->DeleteLocalRef(cls);
             }
+        }
+        if(waitingExitNormal||milliseconds()-exitFailurePoll>250){
+            exitFailurePoll=milliseconds();
+            JNIEnv* env=nullptr;app->activity->vm->AttachCurrentThread(&env,nullptr);jclass cls=env->GetObjectClass(app->activity->clazz);
+            bool failed=env->CallBooleanMethod(app->activity->clazz,env->GetMethodID(cls,"takeExitFailure","()Z"));env->DeleteLocalRef(cls);
+            if(failed){waitingExitNormal=false;exitUnconfirmed=true;menuOpen=true;
+                startFlow.cancel();pendingGesture.cancel();pendingRobotLimit=nullptr;network->requestStop();
+                inputMessage="Normal mode not confirmed: choose Close VR studio only or retry Exit";inputMessageUntil=milliseconds()+10000;}
         }
         auto startAction=startFlow.tick(milliseconds()/1000.,startInput(tracked));
         if(startFlow.active()||startAction==StartFlow::Cancelled||startAction==StartFlow::Finished){inputMessage=startFlow.message;inputMessageUntil=milliseconds()+4000;}

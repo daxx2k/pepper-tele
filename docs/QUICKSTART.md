@@ -29,6 +29,8 @@ There is no Pepper tablet app. After Exit, use CONNECT in Quest settings to star
 
 Keep default protections. With the base still, test small head/arm motions and triggers, then STOP and B. Then try a small translation/rotation in clear space. Verify tracking/Wi-Fi loss stops movement before involving other people. Physical compatibility and latency on this robot remain unverified until this trial.
 
+If the VR studio has never connected to the robot, Exit closes it and returns to Home. If a connection was lost or normal mode could not be confirmed, choose **Close VR studio only** to close the headset scene. This does not confirm robot STOP or normal autonomy; reconnect or use the robot controls if needed.
+
 ## End the session
 
 STOP pauses tracking and gently returns to neutral. B immediately cancels motion, animations and neutral return. Neither ends the service.

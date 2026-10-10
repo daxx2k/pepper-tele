@@ -120,10 +120,15 @@ public class TeleoperationActivity extends NativeActivity {
     public void saveOffsets(String value){getSharedPreferences("connection",MODE_PRIVATE).edit().putString("pose_offsets",value).apply();}
     public void saveLayout(String value){getSharedPreferences("connection",MODE_PRIVATE).edit().putString("layout_state",value).apply();}
     public void savePanelScale(float value){getSharedPreferences("connection",MODE_PRIVATE).edit().putFloat("panel_scale",Math.max(.65f,Math.min(1.f,value))).apply();}
+    private volatile boolean exitFailure;
+    public boolean takeExitFailure(){boolean failed=exitFailure;exitFailure=false;return failed;}
+    public void closeVrStudio(){runOnUiThread(()->{cancelVoice();HeadsetNavigation.closeStudio(this);});}
     public void exitTeleoperation(){runOnUiThread(()->{
         cancelVoice();
         SharedPreferences prefs=ConnectionStore.load(this);
-        it.telepepper.lifecycle.ExitSession.close(this,prefs.getString("host",""),prefs.getString("token",""));
+        exitFailure=false;
+        it.telepepper.lifecycle.ExitSession.close(this,prefs.getString("host",""),prefs.getString("token",""),
+                ()->HeadsetNavigation.closeStudio(this),message->exitFailure=true);
     });}
     @Override public void onBackPressed(){exitTeleoperation();}
     public void openSettings(){runOnUiThread(()->{
