@@ -1,4 +1,5 @@
-<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android" xmlns:metavr="http://schemas.meta.com/metavr-sdk">
+    <metavr:uses-metavr-sdk metavr:minSdkVersion="69" metavr:targetSdkVersion="69" />
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
     <uses-permission android:name="android.permission.WAKE_LOCK" />
@@ -14,10 +15,18 @@
         <meta-data android:name="com.oculus.supportedDevices" android:value="quest3|quest3s" />
         <meta-data android:name="com.oculus.vr.focusaware" android:value="true" />
         <activity android:name=".LauncherActivity" android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.LAUNCHER" />
+                <category android:name="com.oculus.intent.category.2D" />
+                <category android:name="com.oculus.intent.category.VR_HOME_LAUNCHER" />
+                <category android:name="com.oculus.intent.category.OVERLAY_LAUNCHER" />
+            </intent-filter>
         </activity>
-        <activity android:name=".TeleoperationActivity" android:label="TelePepper 2.5" android:icon="@mipmap/ic_launcher" android:exported="true" android:launchMode="singleTask" android:screenOrientation="landscape" android:resizeableActivity="false" android:theme="@android:style/Theme.Black.NoTitleBar.Fullscreen" android:configChanges="orientation|screenSize|screenLayout|smallestScreenSize|density|keyboardHidden|keyboard|navigation|uiMode" android:excludeFromRecents="false">
+        <activity android:name=".TeleoperationActivity" android:label="TelePepper 2.5" android:icon="@mipmap/ic_launcher" android:exported="true" android:launchMode="singleTask" android:taskAffinity="it.telepepper.quest25.immersive" android:screenOrientation="landscape" android:resizeableActivity="false" android:theme="@android:style/Theme.Black.NoTitleBar.Fullscreen" android:configChanges="orientation|screenSize|screenLayout|smallestScreenSize|density|keyboardHidden|keyboard|navigation|uiMode" android:excludeFromRecents="false">
             <meta-data android:name="android.app.lib_name" android:value="telepepper" />
-            <intent-filter><action android:name="android.intent.action.MAIN" /><category android:name="android.intent.category.LAUNCHER" /><category android:name="com.oculus.intent.category.VR" /><category android:name="org.khronos.openxr.intent.category.IMMERSIVE_HMD" /></intent-filter>
+            <intent-filter><action android:name="android.intent.action.MAIN" /><category android:name="android.intent.category.DEFAULT" /><category android:name="com.oculus.intent.category.VR" /><category android:name="org.khronos.openxr.intent.category.IMMERSIVE_HMD" /></intent-filter>
         </activity>
     </application>
 </manifest>

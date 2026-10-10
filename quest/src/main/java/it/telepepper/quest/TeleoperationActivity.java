@@ -105,7 +105,7 @@ public class TeleoperationActivity extends NativeActivity {
         naturalVoice=new NaturalVoice(this);
         prepareSpeechModel("en-US");
         if(host.isEmpty()||token.length()<12) {
-            startActivity(new Intent(this,LauncherActivity.class));finish();
+            HeadsetNavigation.openSetupInHome(this);
         }
     }
     public void saveAppearance(int target,String swatches){getSharedPreferences("connection",MODE_PRIVATE).edit().putInt("led_target",target).putString("led_swatches",swatches).apply();}
@@ -127,6 +127,6 @@ public class TeleoperationActivity extends NativeActivity {
     });}
     @Override public void onBackPressed(){exitTeleoperation();}
     public void openSettings(){runOnUiThread(()->{
-        startActivity(new Intent(this,LauncherActivity.class));finish();
+        HeadsetNavigation.openSetupInHome(this);
     });}
 }

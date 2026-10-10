@@ -93,7 +93,7 @@ public class LauncherActivity extends Activity {
         Button enter=ui.button("Save and open VR studio",true);root.addView(enter,ui.buttonSpace());
         enter.setOnClickListener(v->{String h=host.getText().toString().trim(),t=token.getText().toString().trim();
             if(!ConnectionStore.validHost(h)||t.length()<12){status.setText("Press CONNECT before opening VR.");return;}
-            prefs.edit().putString("host",h).putString("token",t).apply();startActivity(new Intent(this,TeleoperationActivity.class));finish();
+            prefs.edit().putString("host",h).putString("token",t).apply();HeadsetNavigation.openStudio(this);
         });
         root.addView(label("Hold A + X: Start / Pause     Y: Controls     B: STOP\nLeft stick: translate   |   Right stick: turn\nTriggers: hands   |   Left grip: talk",16,muted));
         setContentView(scroll);if(getIntent().getBooleanExtra("enter_vr",false))enter.performClick();

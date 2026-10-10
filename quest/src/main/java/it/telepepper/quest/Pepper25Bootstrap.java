@@ -72,14 +72,13 @@ final class Pepper25Bootstrap {
                 });
                 session.connect(10000);session.setTimeout(45000);
                 listener.progress("Checking NAOqi version and camera runtime...");
-                String probe="env PYTHONPATH=/opt/aldebaran/lib/python2.7/site-packages LD_LIBRARY_PATH=/opt/aldebaran/lib python -c 'import qi; from PIL import Image; s=qi.Session(); s.connect(\"tcp://127.0.0.1:9559\"); print(s.service(\"ALSystem\").systemVersion())'";
-                String version=exec(session,probe).trim();
-                if(!version.startsWith("2.5."))throw new IOException("This app requires Pepper NAOqi 2.5; found "+version);
+                String probe="env PYTHONPATH=/opt/aldebaran/lib/python2.7/site-packages LD_LIBRARY_PATH=/opt/aldebaran/lib python -c 'import qi; from PIL import Image; s=qi.Session(); s.connect(\"tcp://127.0.0.1:9559\"); print(\"TELEPEPPER_NAOQI=\"+str(s.service(\"ALSystem\").systemVersion()))'";
+                RobotRuntimeReply.pepper25Version(exec(session,probe));
                 sftp=(ChannelSftp)session.openChannel("sftp");sftp.connect(5000);
                 String pairing="";boolean installed=false;
                 try{try(InputStream in=sftp.get(ROOT+"/.telepepper-token")){pairing=read(in).trim();}installed=pairing.matches("[0-9a-f]{32,80}");}catch(SftpException missing){}
                 boolean running=false;
-                if(installed){JSONObject state=new JSONObject(exec(session,"python "+ROOT+"/manage25.py status"));running=state.optBoolean("running",false);}
+                if(installed){JSONObject state=new JSONObject(RobotRuntimeReply.jsonObject(exec(session,"python "+ROOT+"/manage25.py status")));running=state.optBoolean("running",false);}
                 if(!running){
                     requireInactive(head);
                     listener.progress("Staging the head service / preserving base settings...");
@@ -98,7 +97,7 @@ final class Pepper25Bootstrap {
                     sftp.put(new ByteArrayInputStream(pairing.getBytes(StandardCharsets.UTF_8)),ROOT+"/.telepepper-token");sftp.chmod(0600,ROOT+"/.telepepper-token");
                 }
                 listener.progress("Starting the head service / tracking stays paused...");
-                JSONObject started=new JSONObject(exec(session,"env PYTHONPATH=/opt/aldebaran/lib/python2.7/site-packages LD_LIBRARY_PATH=/opt/aldebaran/lib python "+ROOT+"/manage25.py start"));
+                JSONObject started=new JSONObject(RobotRuntimeReply.jsonObject(exec(session,"env PYTHONPATH=/opt/aldebaran/lib/python2.7/site-packages LD_LIBRARY_PATH=/opt/aldebaran/lib python "+ROOT+"/manage25.py start")));
                 if(!started.optBoolean("running",false))throw new IOException("Robot service did not become ready");
                 listener.ready(pairing);
             }catch(Exception error){listener.failed(error.getMessage()==null?error.getClass().getSimpleName():error.getMessage());}
