@@ -135,6 +135,7 @@ class Robot(object):
         self.base_sent = None
         self.base_sent_at = 0.
         self.base_requests = 0
+        self.dispatch = None
         self.motion_pending = {}
         self.motion_targets = {}
         self.torso = TorsoAssist()
@@ -161,6 +162,8 @@ class Robot(object):
         if not str(version).startswith('2.5.'):
             raise RuntimeError('This fork requires NAOqi 2.5; found '+str(version))
         self.motion = self.session.service('ALMotion')
+        from motion_dispatch import MotionDispatch
+        self.dispatch = MotionDispatch()
         configure_base_security(self.motion)
         try:
             self.animation_player=self.session.service('ALAnimationPlayer')
@@ -244,6 +247,12 @@ class Robot(object):
         return (.25 if following else .12) if channel=='head' else .35
 
     def stop(self):
+        already_stopping=bool(self.stop_pending)
+        if self.dispatch is not None:
+            drain=self.dispatch.invalidate()
+            if drain.futures:
+                self.stop_pending['motion_drain']=(drain,clock())
+            self.motion_pending.clear();self.motion_targets.clear()
         self.base = [0.] * 3
         self.base_sent = None
         self.velocity = [0.] * 14
@@ -265,12 +274,12 @@ class Robot(object):
             except Exception as exc:errors.append('Stop animation cancel failed: '+str(exc))
             if not self.simulate:self.stop_pending['animation_cancel']=(animation,clock())
         if not self.simulate:
-            if self.stop_pending and animation is None and speech is None and not errors:return
+            if already_stopping and animation is None and speech is None and not errors:return
             self.stop_error='; '.join(errors)
             self.stop_error_reported=False
             operations=[('base_zero',lambda:self.motion.moveToward(0.,0.,0.,_async=True)),
                         ('base_stop',lambda:self.motion.stopMove(_async=True))]
-            if animation is None and speech is None and not errors:
+            if animation is None and speech is None and not errors and 'motion_drain' not in self.stop_pending:
                 operations.extend([('hold_read',lambda:self.motion.getAngles(NAMES,True,_async=True)),
                                    ('torso_read',lambda:self.motion.getAngles(['HipRoll','HipPitch'],True,_async=True))])
             for channel,operation in operations:
@@ -282,6 +291,8 @@ class Robot(object):
         # All waits are completion checks. Logical STOP and pose receipt never
         # wait on a physical braking/hold RPC; arming waits for verified completion.
         for channel,(future,began) in list(self.stop_pending.items()):
+            if self.stop_pending.get(channel)!=(future,began):continue
+            if channel not in ('motion_drain','base_zero','base_stop') and 'motion_drain' in self.stop_pending:continue
             try:finished=future.isFinished()
             except Exception as exc:
                 if 'Stop '+channel+' completion check failed' not in self.stop_error:
@@ -300,6 +311,14 @@ class Robot(object):
                     self.stop_pending['torso_read']=(self.motion.getAngles(['HipRoll','HipPitch'],True,_async=True),clock())
                     continue
                 result=future.value(0)
+                if channel=='motion_drain':
+                    # A submission already in progress can arrive after the first
+                    # brake. Repeat braking after drain, then read a fresh hold.
+                    self.stop_pending['base_zero']=(self.motion.moveToward(0.,0.,0.,_async=True),clock())
+                    self.stop_pending['base_stop']=(self.motion.stopMove(_async=True),clock())
+                    if not any(k in self.stop_pending for k in ('animation_cancel','speech_cancel')):
+                        self.stop_pending['hold_read']=(self.motion.getAngles(NAMES,True,_async=True),clock())
+                        self.stop_pending['torso_read']=(self.motion.getAngles(['HipRoll','HipPitch'],True,_async=True),clock())
                 if channel=='hold_read':
                     current=finite_vector(list(result),14)
                     self.stop_pending['hold_send']=(self.motion.setAngles(NAMES,current,.1,_async=True),clock())
@@ -442,14 +461,14 @@ class Robot(object):
             # 25 Hz; first drive and zero velocity bypass this interval.
             start_drive=changed and self.base_sent is not None and not any(self.base_sent)
             if changed and (release or start_drive or self.base_sent is None or clock()-self.base_sent_at>=.04):
-                if self.submit_motion('base',lambda:self.motion.moveToward(self.base[0],self.base[1],self.base[2],_async=True),force=release):
+                if self.submit_motion('base',lambda target=tuple(self.base):self.motion.moveToward(target[0],target[1],target[2],_async=True),force=release):
                     self.base_sent=list(self.base);self.base_sent_at=clock();self.base_requests+=1
         self.previous = out
 
     def submit_motion(self,channel,operation,force=False,target=None):
         if channel in self.motion_pending and not force:return False
         if target is not None and self.motion_targets.get(channel)==target:return False
-        self.motion_pending[channel]=(operation(),clock())
+        self.motion_pending[channel]=((self.dispatch.submit(operation) if self.dispatch is not None else operation()),clock())
         if target is not None:self.motion_targets[channel]=target
         return True
 
@@ -758,6 +777,21 @@ class State(object):
             return {'seq': packet[2], 'sent': packet[3], 'apply_ms': self.apply_ms,
                     'queue_ms': self.queue_ms, 'sample_age_ms':packet[5], 'armed': self.armed}
 
+def compact_status(obj):
+    """Reduce Quest wire payload without removing Pepper live UI/STOP data."""
+    result=dict(obj)
+    for key in ('events','tablet','tablet_display','participant_response','speech_on_tablet','video_diagnostics'):
+        result.pop(key,None)
+    diagnostics=dict(result.get('motion_diagnostics',{}))
+    diagnostics.pop('stop_history',None)
+    result['motion_diagnostics']=diagnostics
+    capabilities=dict(result.get('capabilities',{}))
+    capabilities.pop('services',None)
+    result['capabilities']=capabilities
+    # Keep full current telemetry: Pepper's lidar and pose comparison use it.
+    # Keep official_animations: its selectable gestures differ from NAO's.
+    return result
+
 def send_json(conn, obj):
     conn.sendall((json.dumps(obj, separators=(',', ':')) + '\n').encode('utf-8'))
 
@@ -1029,7 +1063,7 @@ class Service(object):
                         if request.get('cmd') == 'return_to_normal':
                             result = self.return_to_normal(request)
                             self.running = False
-                            send_json(conn,result)
+                            send_json(conn,compact_status(result) if request.get("compact") is True else result)
                             return
                         if self.closing and request.get('cmd') not in ('stop','status',None):
                             raise ValueError('TelePepper is closing')
@@ -1037,7 +1071,7 @@ class Service(object):
                         elif request.get('cmd') not in ('status',None): self.woz.action(request)
                         result=self.woz.status(request.get('since'))
                         result.update(armed=self.state.armed,fault=self.state.fault,pilot_connected=bool(self.state.session),ok=True)
-                        send_json(conn,result)
+                        send_json(conn,compact_status(result) if request.get("compact") is True else result)
                     except Exception as exc: send_json(conn,{'ok':False,'error':str(exc)})
                 return
             with self.state.lock:
@@ -1065,7 +1099,7 @@ class Service(object):
                     if cmd == 'return_to_normal':
                         response = self.return_to_normal(request)
                         self.running = False
-                        send_json(conn,response)
+                        send_json(conn,compact_status(response) if request.get("compact") is True else response)
                         return
                     if self.closing and cmd not in ('stop','status'):
                         raise ValueError('TelePepper is closing')
@@ -1104,7 +1138,7 @@ class Service(object):
                     elif cmd != 'status': self.woz.action(request)
                     response=self.woz.status()
                     response.update(armed=self.state.armed,fault=self.state.fault,ok=True,gesture=self.state.gesture[0] if self.state.gesture else '')
-                    send_json(conn,response)
+                    send_json(conn,compact_status(response) if request.get("compact") is True else response)
                 except Exception as exc:
                     send_json(conn,{'armed':self.state.armed,'fault':self.state.fault,'ok':False,'error':str(exc)})
         except Exception as e:
@@ -1275,7 +1309,9 @@ class Service(object):
             self.running = False
             try:
                 if not self.normal_exit:self.state.disarm()
-            finally:self.udp.close()
+            finally:
+                self.udp.close()
+                if self.state.robot.dispatch is not None:self.state.robot.dispatch.close()
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()

@@ -2,15 +2,21 @@
 
 <img src="docs/assets/telepepper-icon.png" alt="TelePepper app icon: a Pepper robot with blue accents" width="140" />
 
-[Download the 0.3.11 Pepper 2.5 experimental release](https://github.com/daxx2k/pepper-tele/releases/tag/v0.3.11-test) · [Pepper 2.9 branch](https://github.com/daxx2k/pepper-tele/tree/main)
+[Download the 0.3.11 Pepper 2.5 experimental release](https://github.com/daxx2k/pepper-tele/releases/tag/v0.3.11-test) Â· [Pepper 2.9 branch](https://github.com/daxx2k/pepper-tele/tree/main)
 
 TelePepper lets you control **Pepper, the wheeled humanoid robot developed by SoftBank Robotics**, using a **Meta Quest virtual reality headset**. The robot follows your head and arm movements; the headset controllers let you drive it, and live camera feeds show what the robot sees.
 
 For **Wizard of Oz research**, an operator controls the robot's speech and behaviour while participants interact with it. TelePepper provides speech controls, gestures and lights for these interactions.
 
-**Version 0.3.11-pepper25-test — experimental prerelease.**
+**Version 0.3.11-pepper25-test â€” experimental prerelease.**
 
 This update fixes the false NAOqi rejection caused by qi startup warnings (including the `2.5.10.7` case). Connection settings now open as a Home panel before entering the VR studio, avoiding the previous launch into an empty immersive background. The Home background follows your headset environment/passthrough setting. Automatic tests and the Android build pass; a fresh headset and Pepper 2.5 trial is still required.
+
+## Pepper 2.5 development update: 0.3.12
+
+The local 0.3.12 build adds compact Quest status replies, bounded SDK submission off the tracking lock with STOP draining, and adaptive RGB requests: 10 fps per camera with both enabled, 30 fps with one enabled. Depth remains 5 fps. Resolution, JPEG quality, motion limits and response settings are retained. Published downloads above still point to 0.3.11 until a new release is published.
+
+Update the Quest25 APK without clearing its settings. Use Exit TelePepper to stop the old head service, then CONNECT from the updated Quest setup to stage the new head scripts; saved pairing and deployment numeric settings are retained. Do not replace scripts while a pilot is active. Confirm both app and head-service versions in Help/status before a supervised trial. A real Pepper 2.5 trial remains required.
 
 ## Download apps
 
@@ -24,8 +30,8 @@ This update fixes the false NAOqi rejection caused by qi startup warnings (inclu
 
 For first setup, download the complete package with English instructions and installation tools:
 
-- [Pepper 2.9 install ZIP](https://github.com/daxx2k/pepper-tele/releases/download/v0.3.11-test/TelePepper-Pepper29-install-0.3.11.zip) — includes both Quest and Pepper tablet apps.
-- [Pepper 2.5 install ZIP](https://github.com/daxx2k/pepper-tele/releases/download/v0.3.11-test/TelePepper-Pepper25-install-0.3.11.zip) — includes the Quest25 app; no Pepper Android tablet app is required.
+- [Pepper 2.9 install ZIP](https://github.com/daxx2k/pepper-tele/releases/download/v0.3.11-test/TelePepper-Pepper29-install-0.3.11.zip) â€” includes both Quest and Pepper tablet apps.
+- [Pepper 2.5 install ZIP](https://github.com/daxx2k/pepper-tele/releases/download/v0.3.11-test/TelePepper-Pepper25-install-0.3.11.zip) â€” includes the Quest25 app; no Pepper Android tablet app is required.
 
 Use the package matching your robot's NAOqi version. Source ZIPs are for developers and are not required to install the apps. [View all releases](https://github.com/daxx2k/pepper-tele/releases).
 

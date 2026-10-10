@@ -35,3 +35,7 @@ Dance uses the unmodified headbang clip from SoftBank Robotics Robot Focus and A
 On Pepper 2.5, manual availability remains limited to paths confirmed in its installed library; the 2.9 package is not installed by this fork.
 
 Automatic speech gestures use native arm-only interpolation on both variants. Head, torso and wheels are excluded from those resources; existing tracking and STOP checks remain active.
+
+## Adaptive video and compact status (0.3.12, Pepper 2.5)
+
+RGB feeds request 10 fps each while both are enabled; a single enabled RGB feed requests 30 fps. Depth requests 5 fps. Switching feeds restarts media subscriptions only. These are requested rates, not measured delivered rates. Quality and resolution are unchanged. The VR client asks for compact status while the console and other clients retain full diagnostics.

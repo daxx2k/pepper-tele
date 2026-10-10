@@ -50,8 +50,13 @@ void Network::requestReconnect(){requestStop();reconnect_=true;lastVideo=0;
 void Network::setDepthStreaming(bool enabled){setCameraStreaming(2,enabled);}
 void Network::setCameraStreaming(int camera,bool enabled){
     if(camera<0||camera>2)return;
+    bool changed=cameraStreaming(camera)!=enabled;
     if(camera==0)topStreaming=enabled;else if(camera==1)bottomStreaming=enabled;else depthStreaming=enabled;
-    if(!enabled){std::lock_guard<std::mutex> g(socketsMutex_);if(videoSockets_[camera]>=0)shutdown(videoSockets_[camera],SHUT_RDWR);}
+    if(changed){std::lock_guard<std::mutex> g(socketsMutex_);
+        // Only media subscriptions restart when RGB load changes.
+        if(camera<2){for(int c=0;c<2;++c)if(videoSockets_[c]>=0)shutdown(videoSockets_[c],SHUT_RDWR);}
+        else if(videoSockets_[camera]>=0)shutdown(videoSockets_[camera],SHUT_RDWR);
+    }
 }
 void Network::setStatus(const std::string& s){std::lock_guard<std::mutex> g(mutex_);status_=s;}
 std::string Network::currentHost(){std::lock_guard<std::mutex> g(mutex_);return host_;}
@@ -82,7 +87,7 @@ void Network::controlLoop(){
             if(req==0){std::lock_guard<std::mutex> g(mutex_);if(!commands_.empty()){request=commands_.front();commands_.pop_front();}}
             double began=milliseconds();
             if(request.value("cmd",std::string())!="status")__android_log_print(ANDROID_LOG_INFO,"TelePepper","Control request %s generation=%u",request.value("cmd",std::string()).c_str(),generation.load());
-            writeJson(s,request);auto reply=readJson(s,pending);controlRtt=milliseconds()-began;
+            request["compact"]=true;writeJson(s,request);auto reply=readJson(s,pending);controlRtt=milliseconds()-began;
             if(req||controlRtt>500)__android_log_print(ANDROID_LOG_INFO,"TelePepper","Control reply %s ok=%d armed=%d duration_ms=%.0f stop_version=%lld",request.value("cmd",std::string()).c_str(),reply.value("ok",true),reply.value("armed",false),controlRtt.load(),(long long)reply.value("motion_diagnostics",json::object()).value("stop_generation",int64_t(0)));
             auto diagnostics=reply.value("motion_diagnostics",json::object());
             if(diagnostics.contains("command_age_ms")&&diagnostics["command_age_ms"].is_number()){
@@ -188,9 +193,10 @@ void Network::voiceLoop(){while(running_){
 }}
 void Network::videoLoop(int camera){while(running_){if(!connected||!cameraStreaming(camera)){pauseMs(100);continue;}int s=-1;try{
         std::string session;{std::lock_guard<std::mutex> g(mutex_);session=session_;}
-        s=connectTo(currentHost(),9572);{std::lock_guard<std::mutex> g(socketsMutex_);videoSockets_[camera]=s;}writeJson(s,{{"session",session},{"camera",camera},{"fps",camera==0?30:camera==1?10:5}});
+        int requestedFps=cameraFrameRate(camera);
+        s=connectTo(currentHost(),9572);{std::lock_guard<std::mutex> g(socketsMutex_);videoSockets_[camera]=s;}writeJson(s,{{"session",session},{"camera",camera},{"fps",requestedFps}});
         unsigned videoGeneration=generation;
-        while(running_&&connected&&!reconnect_&&videoGeneration==generation&&cameraStreaming(camera)){uint32_t length;readAll(s,&length,4);length=ntohl(length);if(length==0||length>1024*1024)throw std::runtime_error("Invalid video frame");
+        while(running_&&connected&&!reconnect_&&videoGeneration==generation&&cameraStreaming(camera)&&requestedFps==cameraFrameRate(camera)){uint32_t length;readAll(s,&length,4);length=ntohl(length);if(length==0||length>1024*1024)throw std::runtime_error("Invalid video frame");
             std::vector<unsigned char> jpeg(length);readAll(s,jpeg.data(),length);double received=milliseconds();
             // Grant the next capture immediately; decoding cannot delay robot commands.
             const char next='N';sendAll(s,&next,1);

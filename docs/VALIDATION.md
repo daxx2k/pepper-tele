@@ -1,5 +1,13 @@
 # Validation - Pepper 2.5 trial build
 
+## 0.3.12: compact status, SDK dispatch and adaptive cameras (2026-10-10)
+
+200 Python regressions pass, including all 188 existing cases. New checks cover bounded queue saturation, blocked SDK calls, nonblocking STOP invalidation, queued-command cancellation, final braking after in-flight submission, fresh measured-pose holds, animation cancellation ordering and channel coalescing. Socket tests verify compact and legacy replies for both pilot and observer. Compact replies preserve lidar/pose/thermal telemetry, official-animation availability, speech state and STOP generations; full replies remain unchanged without an explicit compact request.
+
+Android Quest APK builds successfully. Real native network tests executed on Quest against loopback simulated servers verify adaptive camera subscription rates and compact requests, Piper clip transport, and connection recovery. No physical robot was contacted or armed for these tests. RGB requests are 10/10 fps with two feeds and 30 fps with one, depth 5 fps; original image resolution/quality, numerical deployment settings and motion response are retained. Physical Pepper 2.5 latency and STOP behaviour still require a supervised trial. These are implemented changes, not a measured physical latency improvement.
+
+A read-only comparison of main/2.9 confirms the same gaps: full status replies, SDK submissions inline with pose application, and fixed RGB requests of 30/10 fps. Main/2.9 was not modified in this update.
+
 ## 0.3.11: connection setup and discovery (2026-10-10)
 
 Both variants build successfully. Full Python suites pass (186 tests for 2.9, 188 for 2.5). Fourteen host C++ Exit flow cases pass. JVM tests verify endpoint-specific pairing, rotated current codes, UDP validation/deduplication, authenticated saved-endpoint fallback and rejection of invalid authentication. The production discovery code found the paired robot in a read-only PC network check.

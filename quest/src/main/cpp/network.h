@@ -40,6 +40,7 @@ public:
     void setDepthStreaming(bool enabled);
     void setCameraStreaming(int camera,bool enabled);
     bool cameraStreaming(int camera) const {return camera==2?depthStreaming.load():camera==0?topStreaming.load():bottomStreaming.load();}
+    int cameraFrameRate(int camera) const {return !cameraStreaming(camera)?0:camera==2?5:topStreaming&&bottomStreaming?10:30;}
     bool anyVideoEnabled() const {return topStreaming||bottomStreaming||depthStreaming;}
     bool takeFrame(VideoFrame& out,int camera=0);
     std::string status();
