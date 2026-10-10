@@ -2,7 +2,7 @@ plugins { id 'com.android.application' }
 android {
     namespace 'it.telepepper.pepper'
     compileSdk 34
-    defaultConfig { applicationId 'it.telepepper.pepper'; minSdk 23; targetSdk 28; versionCode 10; versionName '0.3.8-test' }
+    defaultConfig { applicationId 'it.telepepper.pepper'; minSdk 23; targetSdk 28; versionCode 11; versionName '0.3.11-test' }
     sourceSets { main { assets.srcDirs = ['../bridge']; java.srcDirs += ['../../config/android/java']; res.srcDirs += ['../../config/android/res'] } }
     aaptOptions { ignoreAssetsPattern '__pycache__:*.pyc:*.pyo:.*' }
     // This APK is sideloaded on an Android 6 robot, never submitted to Google Play.

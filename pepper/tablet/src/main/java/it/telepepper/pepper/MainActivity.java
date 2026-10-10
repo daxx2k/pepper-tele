@@ -122,7 +122,7 @@ public class MainActivity extends Activity {
                     boolean armed=result.optBoolean("armed",false)||(telemetry!=null&&telemetry.optBoolean("armed",false));
                     boolean content=tablet!=null&&tablet.optDouble("opacity",1)>0&&(!tablet.optString("text","").isEmpty()||!tablet.optString("reaction","").isEmpty());
                     if(allowAutoDisplay&&(armed||content)){runOnUiThread(()->{if(configVisible&&allowAutoDisplay&&!isFinishing())openDisplay(connectedHost);});return;}
-                }catch(Exception ignored){}
+                }catch(Exception ignored){runOnUiThread(()->{if(configVisible&&connected&&connectButton.isEnabled()&&!isFinishing()){connected=false;connectButton.setText("CONNECT");status.setText("Service disconnected. Press CONNECT to start a new session.");}});}
             }
             try{Thread.sleep(750);}catch(InterruptedException e){return;}
         }

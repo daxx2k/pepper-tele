@@ -2,34 +2,34 @@
 
 <img src="docs/assets/telepepper-icon.png" alt="TelePepper app icon: a Pepper robot with blue accents" width="140" />
 
-[Download the 0.3.10 experimental release](https://github.com/daxx2k/pepper-tele/releases/tag/v0.3.10-test) · [Pepper 2.5 branch](https://github.com/daxx2k/pepper-tele/tree/pepper25)
+[Download the 0.3.11 experimental release](https://github.com/daxx2k/pepper-tele/releases/tag/v0.3.11-test) · [Pepper 2.5 branch](https://github.com/daxx2k/pepper-tele/tree/pepper25)
 
 TelePepper lets you control **Pepper, the wheeled humanoid robot developed by SoftBank Robotics**, using a **Meta Quest virtual reality headset**. The robot follows your head and arm movements; the headset controllers let you drive it, and live camera feeds show what the robot sees.
 
 For **Wizard of Oz research**, an operator controls the robot's speech and behaviour while participants interact with it. TelePepper provides speech controls, gestures and lights for these interactions.
 
-**Version 0.3.10-test — experimental prerelease.** This is a development project for operator-supervised evaluation. Automated checks do not prove physical latency, pose matching or compatibility on another robot.
+**Version 0.3.11-test — experimental prerelease.** This is a development project for operator-supervised evaluation. Automated checks do not prove physical latency, pose matching or compatibility on another robot.
 
 ## Download apps
 
-**Ready-to-install compiled apps are available in [GitHub Releases](https://github.com/daxx2k/pepper-tele/releases/tag/v0.3.10-test). You do not need to build the source code.** An APK is an Android app installation file. On the release page, expand **Assets** if the downloads are not visible.
+**Ready-to-install compiled apps are available in [GitHub Releases](https://github.com/daxx2k/pepper-tele/releases/tag/v0.3.11-test). You do not need to build the source code.** An APK is an Android app installation file. On the release page, expand **Assets** if the downloads are not visible.
 
 | Your robot software | App and device | Download |
 | --- | --- | --- |
-| Pepper NAOqi 2.9 | Meta Quest VR headset | [TelePepper-Quest.apk](https://github.com/daxx2k/pepper-tele/releases/download/v0.3.10-test/TelePepper-Quest.apk) |
-| Pepper NAOqi 2.9 | Android tablet on the Pepper robot | [TelePepper-Pepper.apk](https://github.com/daxx2k/pepper-tele/releases/download/v0.3.10-test/TelePepper-Pepper.apk) |
-| Pepper NAOqi 2.5 | Meta Quest VR headset | [TelePepper-Quest25.apk](https://github.com/daxx2k/pepper-tele/releases/download/v0.3.10-test/TelePepper-Quest25.apk) |
+| Pepper NAOqi 2.9 | Meta Quest VR headset | [TelePepper-Quest.apk](https://github.com/daxx2k/pepper-tele/releases/download/v0.3.11-test/TelePepper-Quest.apk) |
+| Pepper NAOqi 2.9 | Android tablet on the Pepper robot | [TelePepper-Pepper.apk](https://github.com/daxx2k/pepper-tele/releases/download/v0.3.11-test/TelePepper-Pepper.apk) |
+| Pepper NAOqi 2.5 | Meta Quest VR headset | [TelePepper-Quest25.apk](https://github.com/daxx2k/pepper-tele/releases/download/v0.3.11-test/TelePepper-Quest25.apk) |
 
 For first setup, download the complete package with English instructions and installation tools:
 
-- [Pepper 2.9 install ZIP](https://github.com/daxx2k/pepper-tele/releases/download/v0.3.10-test/TelePepper-Pepper29-install-0.3.10.zip) — includes both Quest and Pepper tablet apps.
-- [Pepper 2.5 install ZIP](https://github.com/daxx2k/pepper-tele/releases/download/v0.3.10-test/TelePepper-Pepper25-install-0.3.10.zip) — includes the Quest25 app; no Pepper Android tablet app is required.
+- [Pepper 2.9 install ZIP](https://github.com/daxx2k/pepper-tele/releases/download/v0.3.11-test/TelePepper-Pepper29-install-0.3.11.zip) — includes both Quest and Pepper tablet apps.
+- [Pepper 2.5 install ZIP](https://github.com/daxx2k/pepper-tele/releases/download/v0.3.11-test/TelePepper-Pepper25-install-0.3.11.zip) — includes the Quest25 app; no Pepper Android tablet app is required.
 
 Use the package matching your robot's NAOqi version. Source ZIPs are for developers and are not required to install the apps. [View all releases](https://github.com/daxx2k/pepper-tele/releases).
 
-**Pepper NAOqi 2.5 users:** use the [0.3.10 setup/Exit update](https://github.com/daxx2k/pepper-tele/releases/tag/v0.3.10-test). It fixes warning-prefixed firmware replies and opens setup in the headset Home environment. The Pepper 2.9 downloads above use the separate 0.3.10 update.
+**Pepper NAOqi 2.5 users:** use the [0.3.11 setup/Exit update](https://github.com/daxx2k/pepper-tele/releases/tag/v0.3.11-test). It fixes warning-prefixed firmware replies and opens setup in the headset Home environment. The Pepper 2.9 downloads above use the separate 0.3.11 update.
 
-The 0.3.10 update fixes **Exit TelePepper** on both variants. Exit closes the VR studio directly if it never connected to a robot. After a lost connection or an unconfirmed stop/normal-mode return, controls offer **Close VR studio only**; this closes the headset scene without claiming the robot has returned to normal. With a connected robot, normal mode still requires a fresh confirmed STOP and a successful robot acknowledgement.
+The 0.3.11 update fixes **Exit TelePepper** on both variants. Exit closes the VR studio directly if it never connected to a robot. After a lost connection or an unconfirmed stop/normal-mode return, controls offer **Close VR studio only**; this closes the headset scene without claiming the robot has returned to normal. With a connected robot, normal mode still requires a fresh confirmed STOP and a successful robot acknowledgement.
 
 ## Choose your robot software version
 
@@ -42,7 +42,7 @@ The numbers **2.9 and 2.5 refer to NAOqi, Pepper's robot software**, rather than
 
 A computer is only needed for initial APK installation. During operation, Quest connects directly to the robot head. No PC relay, cloud TTS API or firmware upgrade is required. Quest Pro has not been validated. Sub-40 ms physical motion latency has not been established.
 
-The 0.3.10 Quest update opens connection settings as a panel in the headset Home environment before entering the immersive VR studio. The setup background follows your Home environment/passthrough setting. It requires Meta Horizon OS v69 or newer. The bundled Pepper tablet APK is unchanged from 0.3.8; robot control, calibration and explicit arming are unchanged.
+The 0.3.11 Quest update opens connection settings as a panel in the headset Home environment before entering the immersive VR studio. The setup background follows your Home environment/passthrough setting. It requires Meta Horizon OS v69 or newer. The Pepper tablet app is also updated to 0.3.11; robot control, calibration and explicit arming are unchanged.
 
 ## Install and operate
 
@@ -77,3 +77,5 @@ Run `python tools/privacy_check.py` before sharing source. GitHub APKs are debug
 ## License
 
 Original TelePepper code is Apache 2.0: see [LICENSE](LICENSE) and [NOTICE](NOTICE). Third-party libraries, fonts and official animation derivatives retain their own terms; see [dependency notices](docs/THIRD-PARTY.md).
+
+Connection setup uses a compact scrollable form with **Find Pepper on Wi-Fi** above the fields and **Save and open VR studio** always visible at the bottom. Selecting a saved endpoint restores its own pairing code. Discovery retries local-subnet broadcasts and saved addresses, then checks previously paired endpoints with an authenticated read-only connection if Wi-Fi blocks broadcast. A running TelePepper head service is required for discovery; use manual setup for the first installation.

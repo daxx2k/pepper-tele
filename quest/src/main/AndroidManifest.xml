@@ -11,10 +11,11 @@
     <uses-feature android:name="com.oculus.software.body_tracking" android:required="true" />
     <uses-feature android:name="com.oculus.feature.PASSTHROUGH" android:required="false" />
     <queries><package android:name="com.k2fsa.sherpa.onnx.tts.engine" /><intent><action android:name="android.intent.action.TTS_SERVICE" /></intent><intent><action android:name="android.speech.RecognitionService" /></intent><provider android:authorities="org.khronos.openxr.runtime_broker;org.khronos.openxr.system_runtime_broker" /><intent><action android:name="org.khronos.openxr.OpenXRRuntimeService" /></intent></queries>
-    <application android:label="TelePepper Quest" android:icon="@mipmap/ic_launcher" android:roundIcon="@mipmap/ic_launcher" android:allowBackup="false" android:dataExtractionRules="@xml/data_extraction_rules" android:theme="@style/TelePepperStudio" android:hasCode="true">
+    <application android:label="TelePepper" android:icon="@mipmap/ic_launcher" android:roundIcon="@mipmap/ic_launcher" android:allowBackup="false" android:dataExtractionRules="@xml/data_extraction_rules" android:theme="@style/TelePepperStudio" android:hasCode="true">
         <meta-data android:name="com.oculus.supportedDevices" android:value="quest3|quest3s" />
         <meta-data android:name="com.oculus.vr.focusaware" android:value="true" />
-        <activity android:name=".LauncherActivity" android:exported="true">
+        <activity android:name=".LauncherActivity" android:exported="true" android:windowSoftInputMode="adjustResize">
+            <layout android:defaultWidth="600dp" android:defaultHeight="720dp" android:minWidth="360dp" android:minHeight="480dp" />
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.DEFAULT" />
@@ -24,7 +25,7 @@
                 <category android:name="com.oculus.intent.category.OVERLAY_LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".TeleoperationActivity" android:label="TelePepper Quest" android:icon="@mipmap/ic_launcher" android:exported="true" android:launchMode="singleTask" android:taskAffinity="it.telepepper.quest.immersive" android:screenOrientation="landscape" android:resizeableActivity="false" android:theme="@android:style/Theme.Black.NoTitleBar.Fullscreen" android:configChanges="orientation|screenSize|screenLayout|smallestScreenSize|density|keyboardHidden|keyboard|navigation|uiMode" android:excludeFromRecents="false">
+        <activity android:name=".TeleoperationActivity" android:label="TelePepper" android:icon="@mipmap/ic_launcher" android:exported="true" android:launchMode="singleTask" android:taskAffinity="it.telepepper.quest.immersive" android:screenOrientation="landscape" android:resizeableActivity="false" android:theme="@android:style/Theme.Black.NoTitleBar.Fullscreen" android:configChanges="orientation|screenSize|screenLayout|smallestScreenSize|density|keyboardHidden|keyboard|navigation|uiMode" android:excludeFromRecents="false">
             <meta-data android:name="android.app.lib_name" android:value="telepepper" />
             <intent-filter><action android:name="android.intent.action.MAIN" /><category android:name="android.intent.category.DEFAULT" /><category android:name="com.oculus.intent.category.VR" /><category android:name="org.khronos.openxr.intent.category.IMMERSIVE_HMD" /></intent-filter>
         </activity>

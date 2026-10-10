@@ -1,5 +1,11 @@
 # Release preparation validation - 2026-10-05
 
+## 0.3.11: connection setup and discovery (2026-10-10)
+
+Both variants build successfully. Full Python suites pass (186 tests for 2.9, 188 for 2.5). Fourteen host C++ Exit flow cases pass. JVM tests verify endpoint-specific pairing, rotated current codes, UDP validation/deduplication, authenticated saved-endpoint fallback and rejection of invalid authentication. The production discovery code found the paired robot in a read-only PC network check.
+
+The final 2.9 Quest APK (0.3.11-test) was installed over the existing app and its connection settings remained byte-identical; the manifest label is TelePepper. The 2.9 tablet update preserves its four private settings files byte-for-byte. An external app_process probe aborted on Quest before running discovery, so it does not establish headset discovery success. Quest setup uses compact scrollable fields and a sticky save/open action. Selecting a saved 2.5 endpoint also restores that endpoint's encrypted SSH credentials. No ARM, calibration or physical movement was initiated for this update. A fresh operator trial of headset layout, discovery, connected Exit restoration and Pepper 2.5 remains required; build and mock checks do not establish those physical behaviours.
+
 ## Operator confirmation: 0.3.8 (2026-10-09)
 
 After START and Gestures ON, the operator confirmed that releasing push-to-talk plays arm gestures and tracking remains active on the Pepper 2.9 setup. This is physical operator confirmation of that specific regression fix, in addition to the API probes and automated checks below. Independent head/base movement during gestures, long-session stability, physical latency and Pepper 2.5 compatibility were not separately confirmed by this trial. Earlier pending-trial statements below describe the state before this confirmation.
