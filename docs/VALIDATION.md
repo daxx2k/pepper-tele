@@ -1,5 +1,13 @@
 # Release preparation validation - 2026-10-05
 
+## 0.3.13: persistent window controls (2026-10-11)
+
+Removed only the hover-dependent draw condition for the window controls on both variants. Interaction, layout and robot-control logic are retained. Quest app version metadata and release links are updated. The 2.9 tablet APK is unchanged.
+
+## 0.3.13: persistent window controls (2026-10-11)
+
+Removed only the hover-dependent draw condition for the window controls on both variants. Interaction, layout and robot-control logic are retained. Quest app version metadata and release links are updated. The 2.9 tablet APK is unchanged.
+
 ## 0.3.11: connection setup and discovery (2026-10-10)
 
 Both variants build successfully. Full Python suites pass (186 tests for 2.9, 188 for 2.5). Fourteen host C++ Exit flow cases pass. JVM tests verify endpoint-specific pairing, rotated current codes, UDP validation/deduplication, authenticated saved-endpoint fallback and rejection of invalid authentication. The production discovery code found the paired robot in a read-only PC network check.

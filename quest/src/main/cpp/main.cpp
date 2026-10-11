@@ -1014,7 +1014,7 @@ void main(){
             if(disabledAnimation)selected=false;else if(playingButton)selected=true;
             
             if(command=="local_layout"||command=="local_help"){headerIcon(command,r,selected);continue;}
-            if(command.find("local_panel_")==0){if(!(windowGesture||pointerGrip.held&&pointerValid&&dashboard_layout::windowHover(pointer.x,pointer.y)))continue;float cx=r.x+r.w*.5f,cy=r.y+r.h*.5f;panel(r.x,r.y,r.w,r.h,selected?.15f:.07f,selected?.32f:.12f,selected?.4f:.17f,r.h*.5f);
+            if(command.find("local_panel_")==0){float cx=r.x+r.w*.5f,cy=r.y+r.h*.5f;panel(r.x,r.y,r.w,r.h,selected?.15f:.07f,selected?.32f:.12f,selected?.4f:.17f,r.h*.5f);
                 if(command=="local_panel_move")panel(cx-70,cy-3,140,6,.7f,.78f,.86f,3);
                 else if(command=="local_panel_resize"){pixelLine(cx-9,cy+8,cx+9,cy-8,2,.85f,.9f,1);pixelLine(cx-9,cy+1,cx-9,cy+8,2,.85f,.9f,1);pixelLine(cx-9,cy+8,cx-2,cy+8,2,.85f,.9f,1);pixelLine(cx+9,cy-8,cx+9,cy-1,2,.85f,.9f,1);pixelLine(cx+2,cy-8,cx+9,cy-8,2,.85f,.9f,1);}
                 else if(command=="local_panel_lock"){float green=roomLocked?.95f:.75f;pixelLine(cx-7,cy-9,cx+7,cy-9,2,.65f,green,1);pixelLine(cx-5,cy-9,cx-5,cy+2,2,.65f,green,1);pixelLine(cx+5,cy-9,cx+5,cy+2,2,.65f,green,1);pixelLine(cx-8,cy+2,cx+8,cy+2,2,.65f,green,1);pixelLine(cx,cy+2,cx,cy+11,2,.65f,green,1);if(!roomLocked)pixelLine(cx-10,cy+11,cx+10,cy-12,2,.8f,.85f,.9f);}
