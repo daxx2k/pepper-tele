@@ -870,7 +870,7 @@ void main(){
         text("Quick help",36,32,.92f,.97f,1,2.6f);
         auto bridge=network->snapshot().value("bridge",nlohmann::json::object());
         fitText("Quest "+appVersion+" / Head "+bridge.value("version",std::string("unknown")),36,70,HELP_W-160,.65f,.75f,.85f,1.1f);
-        fitText("Your controls at a glance",36,75,HELP_W-72,.59f,.72f,.85f,ui_type::body);
+        fitText("Your controls at a glance",36,96,HELP_W-72,.59f,.72f,.85f,ui_type::body);
         const char* titles[]={"Start & stop","Move Pepper","Point & speak","Cameras & sensors","Window & layout","Animations & recovery"};
         const char* first[]={"Hold A + X for 0.75 seconds to start/pause.","Left stick: move. Right stick: turn.","Right grip + trigger: point and click.","Tap Top, Bottom or Depth to toggle.","Layout: grip + trigger on panel titles.","Official clips return to live tracking."};
         const char* second[]={"Centre sticks, look forward. B stops.","Head, arms and triggers mirror your pose.","Left grip: release to speak + auto gestures.","Depth: light near; black far or no data.","Right stick scales. Save / Load / Reset.","Both grips toggle gestures. B cancels."};
