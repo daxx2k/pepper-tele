@@ -42,7 +42,6 @@ constexpr Rect statusBar{20,bodyBottom+panelGap,1360,40};
 constexpr Rect windowMove{550,statusBar.y+statusBar.h+panelGap,240,40},windowPin{802,statusBar.y+statusBar.h+panelGap,40,40};
 inline bool windowHover(float x,float y){return x>=530&&x<=866&&y>=995&&y<=1060;}
 inline float grabScale(float initial,float depth){return std::max(.65f,std::min(1.f,initial*std::exp(-depth*1.5f)));}
-constexpr Rect clearLaser{lidarCard.x+lidarCard.w-52,lidarCard.y+lidarCard.h-38,44,30};
 inline int temperatureAt(float px,float py){float dx=px-temperatures.x-10,dy=py-temperatures.y-31;if(dx<0||dy<0)return -1;int col=int(dx/84),row=int(dy/temperatureStrideY);if(col>=5||row>=4||dx-col*84>=80||dy-row*temperatureStrideY>=temperatureTileHeight)return -1;return row*5+col;}
 inline int nextVolume(int value){return value>=100?0:std::min(100,std::max(0,value)+20);}
 inline Rect button(int group,int ordinal,int count){

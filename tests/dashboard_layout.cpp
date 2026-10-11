@@ -39,13 +39,11 @@ using namespace dashboard_layout;
         for(int count=1;count<=(group==1?32:group==6?10:group==0?15:8);count++)for(int i=0;i<count;i++){auto r=button(group,i,count);assert(r.x>=x[group]&&r.x+r.w<=x[group]+width[group]+.01f);assert(r.y>=groupY[group]+33&&r.y+r.h<=groupY[group]+groupHeight[group]+.01f&&r.h>0);}
         for(int other=group+1;other<7;other++){if(other==3||other==5)continue;assert(x[group]+width[group]<=x[other]||x[other]+width[other]<=x[group]||groupY[group]+groupHeight[group]<=groupY[other]||groupY[other]+groupHeight[other]<=groupY[group]);}
     }
-    assert(clearLaser.x>=lidarCard.x&&clearLaser.x+clearLaser.w<=lidarCard.x+lidarCard.w&&clearLaser.y>=lidarCard.y&&clearLaser.y+clearLaser.h<=lidarCard.y+lidarCard.h);
     assert(button(6,0,10).h>=26&&button(6,1,10).x>button(6,0,10).x);
     assert(displayTemperature(0,true)==32&&displayTemperature(100,true)==212&&displayTemperature(37,false)==37);
     assert(temperatureUnit.x+temperatureUnit.w<=temperatures.x+temperatures.w);
     assert(depthCard.y+depthCard.h==950&&lidarCard.y+lidarCard.h==950&&tablet.y+tablet.h==950);
     assert(voiceButton(false,5,6).y+voiceButton(false,5,6).h<voiceButton(true,0,6).y);
-    assert(clearLaser.w==44&&clearLaser.x+clearLaser.w==lidarCard.x+lidarCard.w-8&&clearLaser.y+clearLaser.h==lidarCard.y+lidarCard.h-8);
     assert(width[0]>200&&button(0,0,4).h>button(0,1,4).h&&button(0,0,4).w>button(0,1,4).w);
     assert(button(0,1,8).y>button(0,0,8).y+button(0,0,8).h);
     assert(button(0,3,11).y>button(0,2,11).y+button(0,2,11).h);

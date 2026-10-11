@@ -368,7 +368,6 @@ void main(){
         rows.push_back({"Move window","Grip + trigger: move freely / right stick scales",{{"cmd","local_panel_move"}}});
         rows.push_back({roomLocked?"Unpin window":"Pin window","Toggle room lock / head follow",{{"cmd","local_panel_lock"}}});
         rows.push_back({showLaserMap?"Lidar: ON":"Lidar: OFF","Click the map to toggle its display",{{"cmd","local_map"}}});
-        rows.push_back({"Clear","Reset laser history",{{"cmd","local_map_clear"}}});
         if(state.contains("phrases"))for(const auto& phrase:state["phrases"])rows.push_back({phrase.get<std::string>(),"Speak this phrase in English",{{"cmd","say"},{"text",phrase},{"language","English"},{"phrase",true}}});
         const char* targets[]={"Eyes","Shoulders","Ears"};
         for(int i=0;i<3;++i)rows.push_back({std::string(ledTarget==i?"> ":"")+targets[i],"Select LEDs for the presets below",{{"cmd","local_led_target"},{"target",i}}});
@@ -400,11 +399,10 @@ void main(){
         if(command=="local_camera"){auto r=dashboard_layout::cameras[items[index].action.value("camera",0)];return {r.x,r.y,r.w,r.h};}
         if(items[index].action.value("cmd",std::string())=="local_depth"){auto r=dashboard_layout::cameras[2];return {r.x,r.y,r.w,r.h};}
         if(command=="local_map"){auto r=dashboard_layout::lidarCard;return {r.x,r.y,r.w,r.h};}
-        if(items[index].action.value("cmd",std::string())=="local_map_clear"){auto r=dashboard_layout::clearLaser;return {r.x,r.y,r.w,r.h};}
         if(command=="local_robot_limit"){float w=(dashboard_layout::width[0]-22)/2;return {dashboard_layout::x[0]+8+items[index].action.value("slot",0)*(w+6),dashboard_layout::groupY[0]+140,w,30};}
         int group=menuGroup(items[index]),count=0,ordinal=0;
         if(group==1){bool phrase=items[index].action.value("phrase",false);for(int i=0;i<(int)items.size();++i)if(menuGroup(items[i])==1&&items[i].action.value("phrase",false)==phrase){if(i<index)++ordinal;++count;}auto r=dashboard_layout::voiceButton(phrase,ordinal,count);return {r.x,r.y,r.w,r.h};}
-        for(int i=0;i<(int)items.size();++i)if(menuGroup(items[i])==group&&items[i].action.value("cmd",std::string())!="local_robot_limit"&&items[i].action.value("cmd",std::string())!="local_help"&&items[i].action.value("cmd",std::string()).find("local_layout")!=0&&items[i].action.value("cmd",std::string())!="local_temperature_unit"&&items[i].action.value("cmd",std::string())!="local_tablet_preview"&&items[i].action.value("cmd",std::string())!="local_map_clear"&&items[i].action.value("cmd",std::string())!="local_map"&&items[i].action.value("cmd",std::string())!="local_depth"&&items[i].action.value("cmd",std::string())!="local_camera"&&items[i].action.value("cmd",std::string()).find("local_panel_")!=0){if(i<index)++ordinal;++count;}
+        for(int i=0;i<(int)items.size();++i)if(menuGroup(items[i])==group&&items[i].action.value("cmd",std::string())!="local_robot_limit"&&items[i].action.value("cmd",std::string())!="local_help"&&items[i].action.value("cmd",std::string()).find("local_layout")!=0&&items[i].action.value("cmd",std::string())!="local_temperature_unit"&&items[i].action.value("cmd",std::string())!="local_tablet_preview"&&items[i].action.value("cmd",std::string())!="local_map"&&items[i].action.value("cmd",std::string())!="local_depth"&&items[i].action.value("cmd",std::string())!="local_camera"&&items[i].action.value("cmd",std::string()).find("local_panel_")!=0){if(i<index)++ordinal;++count;}
         auto r=dashboard_layout::button(group,ordinal,count);return {r.x,r.y,r.w,r.h};
     }
     StartFlow::Input startInput(bool tracked){
@@ -470,7 +468,6 @@ void main(){
         }
         else if(cmd=="local_map"){showLaserMap=!showLaserMap;JNIEnv* env=nullptr;app->activity->vm->AttachCurrentThread(&env,nullptr);jclass cls=env->GetObjectClass(app->activity->clazz);env->CallVoidMethod(app->activity->clazz,env->GetMethodID(cls,"saveLidarMap","(Z)V"),showLaserMap);env->DeleteLocalRef(cls);}
         else if(cmd=="local_tablet_preview"||cmd=="local_temperature_unit"){bool preview=cmd=="local_tablet_preview";if(preview)tabletPreview=!tabletPreview;else fahrenheit=!fahrenheit;JNIEnv* env=nullptr;app->activity->vm->AttachCurrentThread(&env,nullptr);jclass cls=env->GetObjectClass(app->activity->clazz);env->CallVoidMethod(app->activity->clazz,env->GetMethodID(cls,preview?"saveTabletPreview":"saveTemperatureUnit","(Z)V"),preview?tabletPreview:fahrenheit);env->DeleteLocalRef(cls);}
-        else if(cmd=="local_map_clear"){laserMap.clear();laserStamp=-1;}
         else if(cmd=="local_camera"){int c=item.action.value("camera",0);bool enabled=!network->cameraStreaming(c);network->setCameraStreaming(c,enabled);cameraReceived[c]=0;
             JNIEnv* env=nullptr;app->activity->vm->AttachCurrentThread(&env,nullptr);jclass cls=env->GetObjectClass(app->activity->clazz);env->CallVoidMethod(app->activity->clazz,env->GetMethodID(cls,"saveCameraStreaming","(IZ)V"),c,enabled);env->DeleteLocalRef(cls);}
         else if(cmd=="local_depth"){bool enabled=!network->depthStreaming;network->setDepthStreaming(enabled);JNIEnv* env=nullptr;app->activity->vm->AttachCurrentThread(&env,nullptr);jclass cls=env->GetObjectClass(app->activity->clazz);env->CallVoidMethod(app->activity->clazz,env->GetMethodID(cls,"saveDepthStreaming","(Z)V"),enabled);env->DeleteLocalRef(cls);}
@@ -517,7 +514,6 @@ void main(){
         auto items=menuActions();
         if(layoutEditing){for(int i=0;i<(int)items.size();++i){auto c=items[i].action.value("cmd",std::string());if(c.find("local_layout")!=0&&c!="local_help")continue;auto r=menuRect(i,items);if(x>=r.x&&x<r.x+r.w&&y>=r.y&&y<r.y+r.h)return i;}return -1;}
         // Keep the small clear control clickable inside the map toggle target.
-        for(int i=0;i<(int)items.size();++i)if(items[i].action.value("cmd",std::string())=="local_map_clear"){auto r=menuRect(i,items);if(x>=r.x&&x<r.x+r.w&&y>=r.y&&y<r.y+r.h)return i;}
         const auto playing=network->snapshot().value("gesture",std::string());
         for(int i=0;i<(int)items.size();++i){
             if(items[i].action.value("cmd",std::string())=="gesture"&&!playing.empty()&&items[i].action.value("name",std::string())!=playing)continue;
@@ -1030,9 +1026,6 @@ void main(){
                 float diameter=std::min(r.w,r.h)-10,cx=r.x+r.w*.5f,cy=r.y+r.h*.5f;
                 if(ledSwatches[ledTarget]==items[i].action.value("swatch",-2)){panel(cx-diameter*.5f-4,cy-diameter*.5f-4,diameter+8,diameter+8,.45f,.85f,1.f,diameter*.5f+4);panel(cx-diameter*.5f-2,cy-diameter*.5f-2,diameter+4,diameter+4,.06f,.10f,.15f,diameter*.5f+2);}
                 panel(cx-diameter*.5f,cy-diameter*.5f,diameter,diameter,((color>>16)&255)/255.f*level,((color>>8)&255)/255.f*level,(color&255)/255.f*level,diameter*.5f);if((color==0&&ledTarget!=2)||level==0)pixelLine(cx-9,cy+9,cx+9,cy-9,2,.8f,.85f,.9f);continue;}
-            if(command=="local_map_clear"){KeepColors selectedIcon(preserveColors,selected);float cx=r.x+r.w*.5f,cy=r.y+r.h*.5f;
-                pixelLine(cx-8,cy-6,cx+8,cy-6,2,.9f,.96f,1);pixelLine(cx-4,cy-9,cx+4,cy-9,2,.9f,.96f,1);
-                pixelLine(cx-6,cy-4,cx-5,cy+8,2,.9f,.96f,1);pixelLine(cx+6,cy-4,cx+5,cy+8,2,.9f,.96f,1);pixelLine(cx-5,cy+8,cx+5,cy+8,2,.9f,.96f,1);continue;}
             if(stop||command=="local_start"){KeepColors original(preserveColors);centeredText(items[i].label,r,1.f,1.f,1,ui_type::primary);continue;}
             KeepColors selectedText(preserveColors,selected||disabledAnimation);auto caption=disabledAnimation?dashboard_theme::rgb(0x777777):selected?dashboard_theme::rgb(0xffffff):dashboard_theme::Color{.9f,.96f,1};
             const auto& title=items[i].label;float size=(command=="local_start"||command=="local_stop")?ui_type::primary:ui_type::body;
