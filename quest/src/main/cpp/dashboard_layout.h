@@ -21,13 +21,15 @@ constexpr float groupY[]={rowTop,voiceY,lowerY,0,connectionY,0,appearanceY};
 constexpr float groupHeight[]={276,292,144,0,158,0,134};
 constexpr Rect fusion{centreX,rowTop,centreWidth,lowerY-panelGap-rowTop};
 constexpr Rect fusionImage{488,104,444,588};
-constexpr Rect cameras[]={{488,rowTop+38,444,333},{488,rowTop+38+333+panelGap,444,333},{480,839,208,105}};
-constexpr float cameraGap=panelGap,cameraBlendPixels=8,cameraCornerRadius=8;
-constexpr Rect lidar{758,839,140,105};
-constexpr Rect tablet{796,806,152,144};
-// Pepper tablet is 1280x800: landscape 16:10, independent of its containing card.
-constexpr Rect tabletScreen{804,848,136,85};
 constexpr Rect depthCard{centreX,806,224,144},lidarCard{708,806,240,144};
+constexpr Rect tablet{796,806,152,144};
+// Shared title band and safe inset, including the rounded lower corners.
+constexpr Rect mediaContent(Rect card){return {card.x+12,card.y+36,card.w-24,card.h-48};}
+constexpr Rect depthContent=mediaContent(depthCard),lidar=mediaContent(lidarCard),tabletContent=mediaContent(tablet);
+constexpr Rect cameras[]={{488,rowTop+38,444,333},{488,rowTop+38+333+panelGap,444,333},depthContent};
+constexpr float cameraGap=panelGap,cameraBlendPixels=8,cameraCornerRadius=8;
+// Pepper tablet keeps its native landscape 16:10 aspect ratio.
+constexpr Rect tabletScreen{tabletContent.x,tabletContent.y,tabletContent.w,tabletContent.w*10/16};
 constexpr Rect comparison{leftX,rowTop,leftWidth,451};
 constexpr Rect temperatures{leftX,temperatureY,leftWidth,249};
 constexpr Rect temperatureUnit{temperatures.x+temperatures.w-80,temperatures.y+4,70,24};

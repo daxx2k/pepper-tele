@@ -5,7 +5,17 @@
 #include "../quest/src/main/cpp/dashboard_theme.h"
 #include <cassert>
 #include <cstdio>
-int main(){using namespace dashboard_layout;
+int main(){
+    for(auto card:{dashboard_layout::depthCard,dashboard_layout::lidarCard,dashboard_layout::tablet}){
+        auto content=dashboard_layout::mediaContent(card);
+        assert(content.x>=card.x+12 && content.y>=card.y+36);
+        assert(content.x+content.w<=card.x+card.w-12 && content.y+content.h<=card.y+card.h-12);
+    }
+    assert(dashboard_layout::cameras[2].y==dashboard_layout::lidar.y);
+    assert(dashboard_layout::lidar.y==dashboard_layout::tabletContent.y);
+    auto tabletScreen=dashboard_layout::tabletScreen;
+    assert(std::abs(tabletScreen.w/tabletScreen.h-1.6f)<.001f);
+using namespace dashboard_layout;
     for(auto r:{headerLayout,headerHelp})assert(r.w>=48&&r.h>=48&&r.x>=20&&r.x+r.w<=1380&&r.y>=0&&r.y+r.h<=56);
     assert(std::abs(700+1400*helpOffsetWidthFraction(620,.85f,1400)-620*.85f*.5f+12*.85f-1380-panelGap)<.001f);
     assert(fusion.x-(comparison.x+comparison.w)==panelGap);
