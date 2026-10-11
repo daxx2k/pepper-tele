@@ -34,6 +34,7 @@
 #include "pose_mirror.h"
 #include "thermal_color.h"
 #include "dashboard_theme.h"
+#include "phrase_catalog.h"
 namespace ui_type {constexpr float heading=1.6f,body=1.5f,secondary=1.2f,primary=2.4f;}
 
 static void check(XrResult result,const char* what){if(XR_FAILED(result))throw std::runtime_error(std::string(what)+" ("+std::to_string(result)+")");}
@@ -50,6 +51,7 @@ static float bounded(float v,float lo,float hi){return std::max(lo,std::min(hi,v
 static float deadzone(float v){return std::abs(v)<.15f?0.f:std::copysign((std::abs(v)-.15f)/.85f,v);}
 
 class App {
+    PhraseCatalog phraseCatalog;
     android_app* app;
     XrInstance instance=XR_NULL_HANDLE;
     XrSession session=XR_NULL_HANDLE;
@@ -368,7 +370,7 @@ void main(){
         rows.push_back({"Move window","Grip + trigger: move freely / right stick scales",{{"cmd","local_panel_move"}}});
         rows.push_back({roomLocked?"Unpin window":"Pin window","Toggle room lock / head follow",{{"cmd","local_panel_lock"}}});
         rows.push_back({showLaserMap?"Lidar: ON":"Lidar: OFF","Click the map to toggle its display",{{"cmd","local_map"}}});
-        if(state.contains("phrases"))for(const auto& phrase:state["phrases"])rows.push_back({phrase.get<std::string>(),"Speak this phrase in English",{{"cmd","say"},{"text",phrase},{"language","English"},{"phrase",true}}});
+        for(const auto& phrase:phraseCatalog.update(state))rows.push_back({phrase,"Speak this phrase in English",{{"cmd","say"},{"text",phrase},{"language","English"},{"phrase",true}}});
         const char* targets[]={"Eyes","Shoulders","Ears"};
         for(int i=0;i<3;++i)rows.push_back({std::string(ledTarget==i?"> ":"")+targets[i],"Select LEDs for the presets below",{{"cmd","local_led_target"},{"target",i}}});
         const int earPresets[]={0,15,30,50,70,85,100};
@@ -443,6 +445,7 @@ void main(){
             return;
         }
         if(layoutEditing&&cmd!="local_help")return;
+        if(cmd=="say"&&!network->connected){inputMessage="Connect Pepper to speak this phrase";return;}
         if(cmd=="local_offset_face")faceReach=!faceReach;
         else if(cmd=="local_offset_joint")offsetJoint=(offsetJoint+1)%12;
         else if(cmd=="local_offset_minus"||cmd=="local_offset_plus")offsets[offsetJoint]=bounded(offsets[offsetJoint]+(cmd=="local_offset_plus"?2:-2),-30,30);
