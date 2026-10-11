@@ -1,5 +1,9 @@
 # Validation - Pepper 2.5 trial build
 
+## 0.3.13: persistent window controls (2026-10-11)
+
+Removed only the hover-dependent draw condition for the window controls on both variants. Interaction, layout and robot-control logic are retained. Quest app version metadata and release links are updated. The 2.9 tablet APK is unchanged.
+
 ## 0.3.12: compact status, SDK dispatch and adaptive cameras (2026-10-10)
 
 200 Python regressions pass, including all 188 existing cases. New checks cover bounded queue saturation, blocked SDK calls, nonblocking STOP invalidation, queued-command cancellation, final braking after in-flight submission, fresh measured-pose holds, animation cancellation ordering and channel coalescing. Socket tests verify compact and legacy replies for both pilot and observer. Compact replies preserve lidar/pose/thermal telemetry, official-animation availability, speech state and STOP generations; full replies remain unchanged without an explicit compact request.
