@@ -5,7 +5,17 @@
 #include "../quest/src/main/cpp/dashboard_theme.h"
 #include <cassert>
 #include <cstdio>
-int main(){using namespace dashboard_layout;
+int main(){
+    for(auto card:{dashboard_layout::depthCard,dashboard_layout::lidarCard,dashboard_layout::tablet}){
+        auto content=dashboard_layout::mediaContent(card);
+        assert(content.x>=card.x+12 && content.y>=card.y+36);
+        assert(content.x+content.w<=card.x+card.w-12 && content.y+content.h<=card.y+card.h-12);
+    }
+    assert(dashboard_layout::cameras[2].y==dashboard_layout::lidar.y);
+    assert(dashboard_layout::lidar.y==dashboard_layout::tabletContent.y);
+    auto tabletScreen=dashboard_layout::tabletScreen;
+    assert(std::abs(tabletScreen.w/tabletScreen.h-1.6f)<.001f);
+using namespace dashboard_layout;
     for(auto r:{headerLayout,headerHelp})assert(r.w>=48&&r.h>=48&&r.x>=20&&r.x+r.w<=1380&&r.y>=0&&r.y+r.h<=56);
     assert(std::abs(700+1400*helpOffsetWidthFraction(620,.85f,1400)-620*.85f*.5f+12*.85f-1380-panelGap)<.001f);
     assert(fusion.x-(comparison.x+comparison.w)==panelGap);
@@ -63,7 +73,7 @@ int main(){using namespace dashboard_layout;
     assert(cameraGap==panelGap&&cameraBlendPixels<.03f*cameras[1].h&&cameraCornerRadius<=8);
     for(int c=0;c<2;++c){auto fullCamera=contain(cameras[c],320,240);assert(fullCamera.w==cameras[c].w&&fullCamera.h==cameras[c].h);assert(cameras[c].x>=fusion.x&&cameras[c].x+cameras[c].w<=fusion.x+fusion.w&&cameras[c].y+cameras[c].h<=fusion.y+fusion.h);}
     auto full=contain(cameras[2],320,240),wide=contain(cameras[2],1920,1080),square=contain(cameras[2],512,512);
-    assert(full.w==cameras[2].w&&full.h==cameras[2].h);
+    assert(full.w<=cameras[2].w&&full.h<=cameras[2].h&&std::abs(full.w/full.h-4.f/3)<1e-5);
     assert(wide.w==cameras[2].w&&wide.h<cameras[2].h&&std::abs(wide.w/wide.h-16.f/9)<1e-5);
     assert(square.w==square.h&&square.w==cameras[2].h&&square.x>cameras[2].x);
     assert(cameras[2].y>fusion.y+fusion.h&&cameras[2].w<277&&cameras[2].h<208);

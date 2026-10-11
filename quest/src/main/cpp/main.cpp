@@ -942,17 +942,17 @@ void main(){
             auto card=dashboard_layout::depthCard;surfaceCard(card.x,card.y,card.w,card.h);
             const auto rect=dashboard_layout::cameras[2];float x=rect.x,y=rect.y,w=rect.w,h=rect.h;
             std::string label="Depth";
-            fitText(label,card.x+23,card.y+10,card.w-32,.6f,.85f,.9f,ui_type::heading);
+            fitText(label,card.x+12,card.y+10,card.w-24,.6f,.85f,.9f,ui_type::heading);
             if(network->connected&&network->depthStreaming&&cameraReceived[2]>0&&milliseconds()-cameraReceived[2]<1000){auto content=dashboard_layout::contain(rect,cameraWidth[2],cameraHeight[2]);x=content.x;y=content.y;w=content.w;h=content.h;
                 glBindTexture(GL_TEXTURE_2D,cameraTextures[2]);vertices({2*x/W-1,1-2*(y+h)/H,0,1,2*(x+w)/W-1,1-2*(y+h)/H,1,1,2*(x+w)/W-1,1-2*y/H,1,0,2*x/W-1,1-2*(y+h)/H,0,1,2*(x+w)/W-1,1-2*y/H,1,0,2*x/W-1,1-2*y/H,0,0},1);
             }else{drawCrt(x,y,w,h,.55f);fitText(!network->connected?"ROBOT OFFLINE":network->depthStreaming?"Waiting / stale feed":"DEPTH OFF",x+10,y+30,w-20,1,.7f,.35f,ui_type::body);if(!network->depthStreaming)fitText("Click to enable",x+10,y+54,w-20,.65f,.8f,.86f,ui_type::secondary);}
         }
-        const auto map=dashboard_layout::lidar;auto mapCard=dashboard_layout::lidarCard;surfaceCard(mapCard.x,mapCard.y,mapCard.w,mapCard.h);fitText("Lidar",mapCard.x+23,mapCard.y+10,mapCard.w-32,.6f,.85f,.9f,ui_type::heading);
+        const auto map=dashboard_layout::lidar;auto mapCard=dashboard_layout::lidarCard;surfaceCard(mapCard.x,mapCard.y,mapCard.w,mapCard.h);fitText("Lidar",mapCard.x+12,mapCard.y+10,mapCard.w-24,.6f,.85f,.9f,ui_type::heading);
         drawScaleX=map.w/630;drawOffsetX=map.x-490*drawScaleX;drawScaleY=map.h/473;drawOffsetY=map.y-137*drawScaleY;if(showLaserMap&&fresh){KeepColors original(preserveColors);drawLaserMap();}drawScaleX=drawScaleY=1;drawOffsetX=drawOffsetY=0;
         if(!showLaserMap||!fresh){drawCrt(map.x,map.y,map.w,map.h,.55f);fitText(!network->connected?"ROBOT OFFLINE":!showLaserMap?"LIDAR OFF":"Waiting / stale feed",map.x+10,map.y+30,map.w-20,1,.7f,.35f,ui_type::body);fitText("Click to enable",map.x+10,map.y+54,map.w-20,.65f,.8f,.86f,ui_type::secondary);}
         {
-            const auto preview=dashboard_layout::tablet;float px=preview.x+23,py=preview.y;
-            surfaceCard(preview.x,py,preview.w,preview.h);fitText("Tablet",px,py+9,preview.w-35,.85f,.88f,.93f,ui_type::heading);
+            const auto preview=dashboard_layout::tablet;float px=preview.x+12,py=preview.y;
+            surfaceCard(preview.x,py,preview.w,preview.h);fitText("Tablet",px,py+10,preview.w-36,.85f,.88f,.93f,ui_type::heading);
             auto content=state.value("tablet",J::object());auto delivery=state.value("tablet_display",J::object());
             bool shown=fresh&&delivery.value("connected",false)&&delivery.value("revision",-1)==content.value("revision",0);
             // A small confirmation dot replaces the redundant delivery wording.
