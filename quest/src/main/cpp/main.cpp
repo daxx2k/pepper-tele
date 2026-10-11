@@ -140,7 +140,7 @@ class App {
     nlohmann::json layoutPresets=nlohmann::json::array({nullptr,nullptr,nullptr});
     void resetLayout(){for(int i=0;i<13;++i){cardPoses[i]=floating_layout::initial(i);cardScales[i]=1;}}
     nlohmann::json encodeLayout(){auto a=nlohmann::json::array();for(int i=0;i<13;++i){auto p=cardPoses[i];a.push_back({p.position.x,p.position.y,p.position.z,p.orientation.x,p.orientation.y,p.orientation.z,p.orientation.w,cardScales[i]});}return a;}
-    bool decodeLayout(const nlohmann::json& a){if(!a.is_array()||a.size()!=13)return false;auto next=cardPoses;auto sizes=cardScales;try{for(int i=0;i<13;++i){if(!a[i].is_array()||(a[i].size()!=7&&a[i].size()!=8))return false;auto r=a[i];XrPosef p{{r[3].get<float>(),r[4].get<float>(),r[5].get<float>(),r[6].get<float>()},{r[0].get<float>(),r[1].get<float>(),r[2].get<float>()}};if(!floating_layout::valid(p))return false;next[i]=p;if(r.size()==8){float v=r[7].get<float>();if(!std::isfinite(v)||v<.5f||v>2)return false;sizes[i]=v;}else sizes[i]=1;}}catch(...){return false;}cardPoses=next;cardScales=sizes;return true;}
+    bool decodeLayout(const nlohmann::json& a){if(!a.is_array()||a.size()!=13)return false;auto next=cardPoses;auto sizes=cardScales;try{for(int i=0;i<13;++i){if(!a[i].is_array()||(a[i].size()!=7&&a[i].size()!=8))return false;auto r=a[i];XrPosef p{{r[3].get<float>(),r[4].get<float>(),r[5].get<float>(),r[6].get<float>()},{r[0].get<float>(),r[1].get<float>(),r[2].get<float>()}};if(!floating_layout::valid(p))return false;next[i]=p;if(r.size()==8){float v=r[7].get<float>();if(!std::isfinite(v)||v<.5f||v>2)return false;sizes[i]=v;}else sizes[i]=1;}}catch(...){return false;}for(int i=0;i<floating_layout::count;++i)floating_layout::migrateDefault(i,next[i],sizes[i]);cardPoses=next;cardScales=sizes;return true;}
     void saveLayout(){auto state=nlohmann::json{{"version",1},{"floating",floating},{"current",encodeLayout()},{"presets",layoutPresets},{"slot",layoutSlot}}.dump();JNIEnv* env=nullptr;app->activity->vm->AttachCurrentThread(&env,nullptr);auto cls=env->GetObjectClass(app->activity->clazz);auto str=env->NewStringUTF(state.c_str());env->CallVoidMethod(app->activity->clazz,env->GetMethodID(cls,"saveLayout","(Ljava/lang/String;)V"),str);env->DeleteLocalRef(str);env->DeleteLocalRef(cls);}
     bool updateCardGesture(bool trigger,float dt){
         if(cardDrag>=0){if(!trigger||!pointerGrip.held||!focused){cardDrag=-1;saveLayout();return true;}XrPosef controller;if(controllerPose(controller)){dt=bounded(dt,0,.05f);auto axes=stick(1);cardGrab=panel_anchor::depth(cardGrab,axes.y,dt);cardPoses[cardDrag]=floating_layout::relative(roomPanel,panel_anchor::compose(controller,cardGrab),panelWidth());cardScales[cardDrag]=bounded(cardScales[cardDrag]*std::exp(deadzone(axes.x)*dt*.4f),.5f,2.f);}else {cardDrag=-1;saveLayout();}return true;}
@@ -869,7 +869,7 @@ void main(){
         else{std::vector<Point> mouth;for(int i=0;i<=24;++i){float t=i/24.f,u=1-t;mouth.push_back({u*u*111+2*u*t*200+t*t*289,u*u*223+2*u*t*259+t*t*223});}for(int i=1;i<=24;++i){float t=i/24.f,u=1-t;mouth.push_back({u*u*289+2*u*t*200+t*t*111,u*u*223+2*u*t*370+t*t*223});}fill(mouth,{200,270},ink);oval(200,303,35,14,{244/255.f,96/255.f,111/255.f});}
     }
     XrPosef helpPose(XrPosef main){
-        XrPosef offset=identity();offset.position={panelWidth()*(.5f+.5f*HELP_W/W*HELP_SCALE)+.035f,0,0};
+        XrPosef offset=identity();offset.position={panelWidth()*dashboard_layout::helpOffsetWidthFraction(HELP_W,HELP_SCALE,W),0,0};
         return panel_anchor::compose(main,offset);
     }
     void drawHelp(){
@@ -881,7 +881,7 @@ void main(){
         const char* titles[]={"Start & stop","Move Pepper","Point & speak","Cameras & sensors","Window & layout","Animations & recovery"};
         const char* first[]={"Hold A + X for 0.75 seconds to start/pause.","Left stick: move. Right stick: turn.","Right grip + trigger: point and click.","Tap Top, Bottom or Depth to toggle.","Layout: grip + trigger on panel titles.","Official clips return to live tracking."};
         const char* second[]={"Centre sticks, look forward. B stops.","Head, arms and triggers mirror your pose.","Left grip: release to speak + auto gestures.","Depth: light near; black far or no data.","Right stick scales. Save / Load / Reset.","Both grips toggle gestures. B cancels."};
-        for(int i=0;i<6;++i){float y=125+i*137;panel(28,y,HELP_W-56,123,.075f,.13f,.20f,18);
+        for(int i=0;i<6;++i){float y=125+i*(123+dashboard_layout::panelGap);panel(28,y,HELP_W-56,123,.075f,.13f,.20f,18);
             float cx=57,cy=y+29;panel(cx-16,cy-16,32,32,.12f,.30f,.40f,11);
             // Compact geometric icons remain legible without emoji font support.
             if(i==0){panel(cx-6,cy-7,4,14,.45f,1,.78f,1);panel(cx+2,cy-7,4,14,.45f,1,.78f,1);}
@@ -1041,19 +1041,19 @@ void main(){
             }
             centeredText(title,r,caption[0],caption[1],caption[2],size);
         }
-        themedPanel(20,958,W-40,48,dashboard_theme::palette().surface,24);
+        themedPanel(20,dashboard_layout::statusBar.y,W-40,dashboard_layout::statusBar.h,dashboard_theme::palette().surface,20);
         auto animation=state.value("animation",J::object());
         std::string motion=network->armed?"LIVE / B STOP":startFlow.active()?"STARTING / B CANCEL":"PAUSED / HOLD A + X";
         if(network->armed&&!state.value("gesture",std::string()).empty())motion="ANIMATION "+animation.value("name",std::string())+" / "+animation.value("stage",std::string())+" "+std::to_string(int(animation.value("elapsed",0.)))+"s";
         char status[240];bool recentAck=network->armed&&milliseconds()-network->lastAck<300;
         std::snprintf(status,sizeof(status),"%s  |  %s  |  Tracking %s  |  RTT %.0f ms / Queue %.0f ms / NAOqi %.1f ms  |  Recoveries %d",
             motion.c_str(),network->connected?"Connected":"Reconnecting",tracking?"ON":"OFF",recentAck?network->rtt.load():-1.,recentAck?network->queueMs.load():-1.,recentAck?network->applyMs.load():-1.,state.value("motion_diagnostics",J::object()).value("recovery_count",0));
-        fitText(status,36,964,W-72,.75f,.88f,.9f,ui_type::body);
+        fitText(status,36,dashboard_layout::statusBar.y+2,W-72,.75f,.88f,.9f,ui_type::body);
         std::string message=milliseconds()<inputMessageUntil?inputMessage:network->status();
         if(menuOpen&&milliseconds()>=inputMessageUntil)message=items[menuIndex].detail+" | "+network->status();
-        fitText(message,36,986,816,.95f,.8f,.55f,ui_type::secondary);
+        fitText(message,36,dashboard_layout::statusBar.y+24,816,.95f,.8f,.55f,ui_type::secondary);
         std::string audio=network->ttsVoice?voiceStatus:network->talk?"MIC LIVE":network->audioStatus();
-        fitText(audio+" | "+tabletState,870,986,W-902,.6f,.85f,.86f,ui_type::secondary);
+        fitText(audio+" | "+tabletState,870,dashboard_layout::statusBar.y+24,W-902,.6f,.85f,.86f,ui_type::secondary);
         if(milliseconds()-crtAt<320){float strength=.18f*std::max(0.f,1.f-float((milliseconds()-crtAt)/320.));drawCrt(crtBounds[0],crtBounds[1],crtBounds[2],crtBounds[3],strength);}
         std::string hovered;
         if(!pointerOnHelp&&pointerGrip.held&&pointerValid){int hit=menuHit(pointer.x,pointer.y);if(hit>=0){auto cmd=items[hit].action.value("cmd",std::string());if(cmd=="local_layout"||cmd=="local_help")hovered=items[hit].label;}}

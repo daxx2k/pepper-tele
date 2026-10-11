@@ -6,28 +6,38 @@ struct Rect {float x,y,w,h;};
 inline Rect contain(Rect bounds,int sourceWidth,int sourceHeight){if(sourceWidth<=0||sourceHeight<=0)return bounds;float scale=std::min(bounds.w/sourceWidth,bounds.h/sourceHeight),w=sourceWidth*scale,h=sourceHeight*scale;return {bounds.x+(bounds.w-w)*.5f,bounds.y+(bounds.h-h)*.5f,w,h};}
 // Left diagnostics, central fused vision, right stacked operator controls.
 // Semantic group indices remain stable; View and Pose offsets are retired.
-constexpr float x[]={960,960,960,0,20,0,960};
-constexpr float width[]={420,420,420,0,440,0,420};
-constexpr float groupY[]={64,356,806,0,794,0,660};
-constexpr float groupHeight[]={280,292,144,0,156,0,134};
-constexpr Rect fusion{480,64,460,736};
+constexpr float panelGap=12;
+constexpr float leftX=20,leftWidth=440,centreX=leftX+leftWidth+panelGap,rightX=960;
+constexpr float centreWidth=rightX-centreX-panelGap,rowTop=56+panelGap,bodyBottom=950;
+constexpr Rect header{20,8,1360,48};
+inline float helpOffsetWidthFraction(float helpWidth,float scale,float canvasWidth){return .5f+.5f*helpWidth/canvasWidth*scale+(panelGap-20-12*scale)/canvasWidth;}
+constexpr float motionHeight=276;
+constexpr float voiceY=rowTop+motionHeight+panelGap,appearanceY=voiceY+292+panelGap,lowerY=appearanceY+134+panelGap;
+constexpr float temperatureY=rowTop+451+panelGap,connectionY=temperatureY+249+panelGap;
+
+constexpr float x[]={rightX,rightX,rightX,0,leftX,0,rightX};
+constexpr float width[]={420,420,420,0,leftWidth,0,420};
+constexpr float groupY[]={rowTop,voiceY,lowerY,0,connectionY,0,appearanceY};
+constexpr float groupHeight[]={276,292,144,0,158,0,134};
+constexpr Rect fusion{centreX,rowTop,centreWidth,lowerY-panelGap-rowTop};
 constexpr Rect fusionImage{488,104,444,588};
-constexpr Rect cameras[]={{488,102,444,333},{488,455,444,333},{488,838,140,105}};
-constexpr float cameraGap=20,cameraBlendPixels=8,cameraCornerRadius=8;
-constexpr Rect lidar{642,838,140,105};
-constexpr Rect tablet{792,812,148,138};
+constexpr Rect cameras[]={{488,rowTop+38,444,333},{488,rowTop+38+333+panelGap,444,333},{480,839,140,105}};
+constexpr float cameraGap=panelGap,cameraBlendPixels=8,cameraCornerRadius=8;
+constexpr Rect lidar{642,839,140,105};
+constexpr Rect tablet{796,806,152,144};
 // Pepper tablet is 1280x800: landscape 16:10, independent of its containing card.
-constexpr Rect tabletScreen{800,854,132,82.5f};
-constexpr Rect depthCard{480,812,156,138},lidarCard{640,812,144,138};
-constexpr Rect comparison{20,64,440,455};
-constexpr Rect temperatures{20,529,440,252};
+constexpr Rect tabletScreen{804,848,136,85};
+constexpr Rect depthCard{centreX,806,156,144},lidarCard{640,806,144,144};
+constexpr Rect comparison{leftX,rowTop,leftWidth,451};
+constexpr Rect temperatures{leftX,temperatureY,leftWidth,249};
 constexpr Rect temperatureUnit{temperatures.x+temperatures.w-80,temperatures.y+4,70,24};
 inline float displayTemperature(float celsius,bool fahrenheit){return fahrenheit?celsius*1.8f+32.f:celsius;}
 inline Rect voiceButton(bool phrase,int ordinal,int count){int rows=std::max(1,(count+1)/2);float base=phrase?157.f:33.f,space=phrase?127.f:102.f,h=std::min(phrase?44.f:34.f,space/rows),w=(width[1]-22)/2;return {x[1]+8+(ordinal%2)*(w+6),groupY[1]+base+(ordinal/2)*h,w,h-6};}
 constexpr float temperatureStrideY=50,temperatureTileHeight=46;
 inline Rect temperatureTile(int index){return {temperatures.x+10+(index%5)*84,temperatures.y+31+(index/5)*temperatureStrideY,80,temperatureTileHeight};}
 constexpr Rect headerLayout{1250,6,48,48},headerHelp{1306,6,48,48};
-constexpr Rect windowMove{550,1010,240,44},windowPin{802,1010,44,44};
+constexpr Rect statusBar{20,bodyBottom+panelGap,1360,40};
+constexpr Rect windowMove{550,statusBar.y+statusBar.h+panelGap,240,40},windowPin{802,statusBar.y+statusBar.h+panelGap,40,40};
 inline bool windowHover(float x,float y){return x>=530&&x<=866&&y>=995&&y<=1060;}
 inline float grabScale(float initial,float depth){return std::max(.65f,std::min(1.f,initial*std::exp(-depth*1.5f)));}
 constexpr Rect clearLaser{lidarCard.x+lidarCard.w-52,lidarCard.y+lidarCard.h-38,44,30};
