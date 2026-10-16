@@ -20,6 +20,10 @@ The 0.3.19 Quest update removes the LiDAR clear-history button, leaving the map 
 
 The 0.3.19 Quest update shows built-in phrases even before connecting, keeps the latest robot phrase list through disconnects, and refreshes it after reconnecting.
 
+## Prepared arm elevation correction
+
+Build **0.3.20** uses OpenXR gravity and shoulder heading for arm elevation rather than the estimated hip-to-spine tilt. Existing Pepper torso compensation, robot geometry, native joint limits and control rates are preserved. Quest-native regression tests cover level forward arms and a 15/20-degree tilted spine estimate. Both Quest variants are installed for operator validation; the latest published release remains 0.3.19 until that trial.
+
 ## Pepper 2.5 performance update included in 0.3.19
 
 The previously built 0.3.12 update, now included in this release, adds compact Quest status replies, bounded SDK submission off the tracking lock with STOP draining, and adaptive RGB requests: 10 fps per camera with both enabled, 30 fps with one enabled. Depth remains 5 fps. Resolution, JPEG quality, motion limits and response settings are retained.

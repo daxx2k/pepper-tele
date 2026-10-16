@@ -21,6 +21,7 @@
 #include <meta_body_tracking_fidelity.h>
 #include "network.h"
 #include "arm_kinematics.h"
+#include "arm_frame.h"
 #include "arm_limits.h"
 #include "drive_input.h"
 #include "laser_map.h"
@@ -112,6 +113,7 @@ class App {
     std::array<bool,2> armSolutionValid{{false,false}};
     std::array<pepper_arm::Pose,2> humanArms{};
     PoseCommand displayedPose,rawPose;
+    std::array<float,4> armInputElevation{};
     std::array<float,12> offsets{};int offsetJoint=2;
     const char* offsetNames[12]={"Head yaw","Head pitch","L shoulder pitch","L shoulder roll","L elbow yaw","L elbow roll","L wrist yaw","R shoulder pitch","R shoulder roll","R elbow yaw","R elbow roll","R wrist yaw"};
     const int ledColors[7]={0xffffff,0x4388ff,0x46f0aa,0xff5050,0xffb020,0xa050ff,0};
@@ -569,18 +571,16 @@ void main(){
         int s=left?XR_BODY_JOINT_LEFT_ARM_UPPER_FB:XR_BODY_JOINT_RIGHT_ARM_UPPER_FB;
         int e=left?XR_BODY_JOINT_LEFT_ARM_LOWER_FB:XR_BODY_JOINT_RIGHT_ARM_LOWER_FB;
         int w=left?XR_BODY_JOINT_LEFT_HAND_WRIST_FB:XR_BODY_JOINT_RIGHT_HAND_WRIST_FB;
-        // Build anatomical axes from joint positions, not the runtime's bone-local
-        // quaternion conventions: right = shoulder span, up = spine, back = cross.
-        auto right=norm(sub(joints[XR_BODY_JOINT_RIGHT_ARM_UPPER_FB].pose.position,joints[XR_BODY_JOINT_LEFT_ARM_UPPER_FB].pose.position));
-        auto up=norm(sub(joints[XR_BODY_JOINT_SPINE_UPPER_FB].pose.position,joints[XR_BODY_JOINT_HIPS_FB].pose.position));
-        auto back=norm(cross(right,up));up=norm(cross(back,right));
-        auto torso=[&](XrVector3f v){return XrVector3f{dot(v,right),dot(v,up),dot(v,back)};};
-        auto upperRaw=torso(sub(joints[e].pose.position,joints[s].pose.position));
-        auto foreRaw=torso(sub(joints[w].pose.position,joints[e].pose.position));
+        // Keep tracked arm elevation in the gravity-aligned OpenXR frame.
+        auto span=sub(joints[XR_BODY_JOINT_RIGHT_ARM_UPPER_FB].pose.position,joints[XR_BODY_JOINT_LEFT_ARM_UPPER_FB].pose.position);
+        auto frame=pepper_arm::armFrame({span.x,span.y,span.z});
+        auto robotVector=[&](XrVector3f v){return frame.robotVector({v.x,v.y,v.z});};
         int offset=left?2:7;
         const int side=left?0:1;
-        pepper_arm::V upper{-upperRaw.z,-upperRaw.x,upperRaw.y};
-        pepper_arm::V fore{-foreRaw.z,-foreRaw.x,foreRaw.y};
+        pepper_arm::V upper=robotVector(sub(joints[e].pose.position,joints[s].pose.position));
+        pepper_arm::V fore=robotVector(sub(joints[w].pose.position,joints[e].pose.position));
+        armInputElevation[side]=std::atan2(upper.z,std::hypot(upper.x,upper.y))*57.2957795f;
+        armInputElevation[side+2]=std::atan2(fore.z,std::hypot(fore.x,fore.y))*57.2957795f;
         humanArms[side]=pepper_arm::retarget(upper,fore);
         upper=pepper_arm::ry(pepper_arm::rx(upper,-torsoCommand[0]),-torsoCommand[1]);
         fore=pepper_arm::ry(pepper_arm::rx(fore,-torsoCommand[0]),-torsoCommand[1]);
@@ -588,8 +588,7 @@ void main(){
         auto elbow=mapped.elbow,wrist=mapped.wrist;
         float elbowWeight=1;faceBlend[side]=0;
         if(faceReach&&(head.locationFlags&XR_SPACE_LOCATION_POSITION_VALID_BIT)){
-            auto delta=torso(sub(joints[w].pose.position,head.pose.position));
-            pepper_arm::V relative{-delta.z,-delta.x,delta.y};
+            auto relative=robotVector(sub(joints[w].pose.position,head.pose.position));
             relative=pepper_arm::ry(pepper_arm::rx(relative,-torsoCommand[0]),-torsoCommand[1]);
             auto goal=pepper_arm::faceGoal(mapped,relative,pepper_arm::length(fore),left,pose.angles[0],pose.angles[1]-torsoCommand[1]);
             wrist=goal.wrist;elbowWeight=goal.elbowWeight;faceBlend[side]=goal.blend;
@@ -769,7 +768,7 @@ void main(){
         static double lastArmLog=0;
         if(tracked&&calibrated&&milliseconds()-lastArmLog>2000){lastArmLog=milliseconds();
             auto status=network->snapshot();auto telemetry=status.value("telemetry",nlohmann::json::object());
-            __android_log_print(ANDROID_LOG_INFO,"TelePepper","PoseDiag armed=%d headflags=%llu face=%.2f/%.2f goalz=%.3f/%.3f ik_mm=%.0f/%.0f requested=%s measured=%s",(int)network->armed.load(),(unsigned long long)head.locationFlags,faceBlend[0],faceBlend[1],goalHeight[0],goalHeight[1],armError[0]*1000,armError[1]*1000,nlohmann::json(pose.angles).dump().c_str(),telemetry.value("joint_measured",nlohmann::json::array()).dump().c_str());
+            __android_log_print(ANDROID_LOG_INFO,"TelePepper","PoseDiag input_upper_deg=%.1f/%.1f input_fore_deg=%.1f/%.1f armed=%d headflags=%llu face=%.2f/%.2f goalz=%.3f/%.3f ik_mm=%.0f/%.0f requested=%s measured=%s",armInputElevation[0],armInputElevation[1],armInputElevation[2],armInputElevation[3],(int)network->armed.load(),(unsigned long long)head.locationFlags,faceBlend[0],faceBlend[1],goalHeight[0],goalHeight[1],armError[0]*1000,armError[1]*1000,nlohmann::json(pose.angles).dump().c_str(),telemetry.value("joint_measured",nlohmann::json::array()).dump().c_str());
         }
         bool robotGesture=!network->snapshot().value("gesture",std::string()).empty();
         bool returningFromGesture=wasRobotGesture&&!robotGesture;
