@@ -18,6 +18,10 @@ The 0.3.19 Quest update removes the LiDAR clear-history button, leaving the map 
 
 The 0.3.19 Quest update shows built-in phrases even before connecting, keeps the latest robot phrase list through disconnects, and refreshes it after reconnecting.
 
+## Prepared arm elevation correction
+
+Build **0.3.20** uses OpenXR gravity and shoulder heading for arm elevation rather than the estimated hip-to-spine tilt. Existing Pepper torso compensation, robot geometry, native joint limits and control rates are preserved. Quest-native regression tests cover level forward arms and a 15/20-degree tilted spine estimate. Both Quest variants are installed for operator validation; the latest published release remains 0.3.19 until that trial.
+
 ## Download apps
 
 **Ready-to-install compiled apps are available in [GitHub Releases](https://github.com/daxx2k/pepper-tele/releases/tag/v0.3.19-test). You do not need to build the source code.** An APK is an Android app installation file. On the release page, expand **Assets** if the downloads are not visible.
