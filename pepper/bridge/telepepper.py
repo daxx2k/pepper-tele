@@ -39,10 +39,11 @@ except AttributeError:
 NAMES = ['HeadYaw', 'HeadPitch', 'LShoulderPitch', 'LShoulderRoll',
          'LElbowYaw', 'LElbowRoll', 'LWristYaw', 'RShoulderPitch',
          'RShoulderRoll', 'RElbowYaw', 'RElbowRoll', 'RWristYaw', 'LHand', 'RHand']
-# Conservative envelopes, intersected with the robot's own limits at startup.
-LIMITS = [(-1.0, 1.0), (-.68, .43), (-2.05, 2.05), (.05, 1.48),
-          (-1.8, 1.8), (-1.5, -.05), (-1.7, 1.7), (-2.05, 2.05),
-          (-1.48, -.05), (-1.8, 1.8), (.05, 1.5), (-1.7, 1.7), (0, 1), (0, 1)]
+# Head envelope is retained. Arm position bounds come directly from getLimits().
+# These simulation/legacy defaults use Pepper's published native joint ranges.
+LIMITS = [(-1.0, 1.0), (-.68, .43), (-2.0857, 2.0857), (.0087, 1.5620),
+          (-2.0857, 2.0857), (-1.5620, -.0087), (-1.8239, 1.8239), (-2.0857, 2.0857),
+          (-1.5620, -.0087), (-2.0857, 2.0857), (.0087, 1.5620), (-1.8239, 1.8239), (0, 1), (0, 1)]
 # None = normal base speeds; 0.05 = supervised test at 5% of SDK maximum.
 # Numeric test caps must be > 0 and <= 0.1. Restore normal obstacle margins
 # before switching from a test cap back to None.
@@ -187,7 +188,7 @@ class Robot(object):
         for i, name in enumerate(NAMES):
             limits = self.motion.getLimits(name)[0]
             self.hardware_limits[i]=tuple(limits[:2]);self.hardware_max_speed[i]=float(limits[2])
-            self.limits[i] = (max(LIMITS[i][0], limits[0]), min(LIMITS[i][1], limits[1]))
+            self.limits[i] = tuple(limits[:2]) if 2<=i<12 else (max(LIMITS[i][0], limits[0]), min(LIMITS[i][1], limits[1]))
             self.hardware_speed[i] = float(limits[2])*(.25 if i < 2 else .35 if i >= 12 else .5)
 
     def arm(self, resume=False):
@@ -244,7 +245,7 @@ class Robot(object):
         if key=='base':self.set_base_collision(enabled)
         elif key=='range':
             self.range_limited=enabled
-            self.limits=[(max(LIMITS[i][0],p[0]),min(LIMITS[i][1],p[1])) if enabled else tuple(p) for i,p in enumerate(self.hardware_limits)]
+            self.limits=[(max(LIMITS[i][0],p[0]),min(LIMITS[i][1],p[1])) if enabled and not 2<=i<12 else tuple(p) for i,p in enumerate(self.hardware_limits)]
         elif key=='speed':
             self.speed_limited=enabled
             self.hardware_speed=[v*(.25 if i<2 else .35 if i>=12 else .5) if enabled else v for i,v in enumerate(self.hardware_max_speed)]

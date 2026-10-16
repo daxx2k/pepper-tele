@@ -1,5 +1,13 @@
 # Release preparation validation - 2026-10-05
 
+## 0.3.19: raised-arm mapping and native arm position bounds (2026-10-16)
+
+Corrected shoulder-angle inversion to retain both roll branches and full-quadrant elevation beyond vertical. The horizontal T-pose singularity retains a level seed. The solver now accepts the connected robot's ALMotion.getLimits bounds, including mirrored asymmetric bounds; published native Pepper ranges are a legacy/simulation fallback. The head service uses native position limits directly for shoulders, elbows and wrists even when the existing range switch is enabled; that switch is labelled Head range. Firmware collision/coupled-joint protections, speed policies, gentle measured-pose engagement, STOP, torso assistance and base controls are retained.
+
+189 Python tests pass, including native arm bounds, native clipping and status forwarding. Native geometry tests pass on host and Quest: 1200 overhead/native-envelope FK/IK cases, the existing 216 round trips, unequal human bone lengths, horizontal T-pose continuity, near-face goals, mirrored live limits and invalid-profile fallback. These synthetic tests do not prove physical pose accuracy or every collision-dependent pose is reachable. Both Quest apps and the Pepper 2.9 tablet APK build; signatures and source/APK privacy checks pass. Read-only inspection confirms the connected robot runs NAOqi 2.9.5.172 and supplies native joint limits. Physical operator confirmation remains required; no calibration, ARM or expressive movement was initiated by automated tests.
+
+TeleNao is intentionally unchanged pending the operator's confirmation of Pepper behaviour. No speed increase is included in this update.
+
 ## 0.3.13: persistent window controls (2026-10-11)
 
 Removed only the hover-dependent draw condition for the window controls on both variants. Interaction, layout and robot-control logic are retained. Quest app version metadata and release links are updated. The 2.9 tablet APK is unchanged.

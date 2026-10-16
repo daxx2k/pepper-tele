@@ -105,3 +105,7 @@ Dance uses the unmodified headbang clip from SoftBank Robotics Robot Focus and A
 Bundled gestures use registered package paths with validated XML file headers; PTT should not pause tracking merely because speech gestures are enabled. A motor, tracking or connection fault still triggers STOP.
 
 Automatic speech gestures use native arm-only interpolation on both variants. Head, torso and wheels are excluded from those resources; existing tracking and STOP checks remain active.
+
+## Arm matching (0.3.19)
+
+Shoulders, elbows and wrists use native Pepper position bounds read from the connected robot. Head range retains its existing head-only software envelope. Speed settings, smooth initial engagement, collision protection and STOP are unchanged. Raise an arm slowly during the first supervised trial; compare tracked, commanded and measured poses. Human and Pepper proportions and collision-dependent native limits prevent an exact match for every pose. Recalibrate with the usual START flow after updating both endpoints.
