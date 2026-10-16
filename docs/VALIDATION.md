@@ -1,5 +1,9 @@
 # Validation - Pepper 2.5 trial build
 
+## Operator confirmation: 0.3.19 (2026-10-16)
+
+The operator reported that raised-arm mapping is generally much better on Pepper 2.9 and approved publication and a NAO-specific port. Quest, tablet and head service were updated preserving settings/pairing. The head status confirms 0.3.19 and native arm bounds equal to live ALMotion.getLimits values. Residual left/right differences near furniture were not conclusively attributed; no active/passive diagnosis errors were reported in the read-only check. This is not proof of exact 1:1 tracking, every reachable pose or physical latency. Pepper 2.5 remains hardware-unverified.
+
 ## 0.3.19: raised-arm mapping and native arm position bounds (2026-10-16)
 
 Corrected shoulder-angle inversion to retain both roll branches and full-quadrant elevation beyond vertical. The horizontal T-pose singularity retains a level seed. The solver now accepts the connected robot's ALMotion.getLimits bounds, including mirrored asymmetric bounds; published native Pepper ranges are a legacy/simulation fallback. The head service uses native position limits directly for shoulders, elbows and wrists even when the existing range switch is enabled; that switch is labelled Head range. Firmware collision/coupled-joint protections, speed policies, gentle measured-pose engagement, STOP, torso assistance and base controls are retained.
