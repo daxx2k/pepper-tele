@@ -18,6 +18,8 @@ import wave
 from official_animations import NAMES as GESTURES, CATALOG as OFFICIAL_ANIMATIONS
 
 SCALARS = {
+ 'battery_plugged': 'BatteryPowerPluggedChanged',
+ 'battery_charging': 'BatteryChargingFlagChanged',
  'battery': 'Device/SubDeviceList/Battery/Charge/Sensor/Value',
  'battery_temperature': 'Device/SubDeviceList/Battery/Temperature/Sensor/Value',
  'sonar_front': 'Device/SubDeviceList/Platform/Front/Sonar/Sensor/Value',
