@@ -138,6 +138,7 @@ class WoZ(object):
             state=self.service.state
             result['robot_limits']=dict(base=state.robot.base_collision_enabled,range=state.robot.range_limited,speed=state.robot.speed_limited)
             result['base_test_cap']=state.robot.base_test_cap
+            result['native_arm_limits']={name:list(state.robot.hardware_limits[i]) for i,name in enumerate(['HeadYaw','HeadPitch','LShoulderPitch','LShoulderRoll','LElbowYaw','LElbowRoll','LWristYaw','RShoulderPitch','RShoulderRoll','RElbowYaw','RElbowRoll','RWristYaw','LHand','RHand']) if 2<=i<12}
             result['motion_diagnostics'] = dict(last_stop=state.last_stop,
                 stop_history=list(state.stop_history), base_requests=state.robot.base_requests,
                 pending_motion_ms={name:max(0.,(self.clock()-slot[1])*1000.) for name,slot in state.robot.motion_pending.items()},

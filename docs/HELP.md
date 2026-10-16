@@ -39,3 +39,7 @@ Automatic speech gestures use native arm-only interpolation on both variants. He
 ## Adaptive video and compact status (0.3.12, Pepper 2.5)
 
 RGB feeds request 10 fps each while both are enabled; a single enabled RGB feed requests 30 fps. Depth requests 5 fps. Switching feeds restarts media subscriptions only. These are requested rates, not measured delivered rates. Quality and resolution are unchanged. The VR client asks for compact status while the console and other clients retain full diagnostics.
+
+## Arm matching (0.3.19)
+
+Shoulders, elbows and wrists use native Pepper position bounds read from the connected robot. Head range retains its existing head-only software envelope. Speed settings, smooth initial engagement, collision protection and STOP are unchanged. Raise an arm slowly during the first supervised trial; compare tracked, commanded and measured poses. Human and Pepper proportions and collision-dependent native limits prevent an exact match for every pose. Recalibrate with the usual START flow after updating both endpoints.

@@ -80,3 +80,5 @@ Connection setup uses a compact scrollable form with **Find Pepper on Wi-Fi** ab
 
 
 The 0.3.18 Quest update separates the Quick Help version line and subtitle in both the NAOqi 2.9 and 2.5 apps. The bottom move bar and pin stay visible. The Pepper 2.9 tablet APK remains 0.3.11.
+
+Local test build **0.3.19** corrects arm mapping beyond vertical and uses native Pepper position bounds for shoulders, elbows and wrists. Existing speed limits and other controls are retained. Update the Quest app and the head service together; for 2.9, install the updated tablet APK and use Update service while stopped. For 2.5, cleanly exit the old service and CONNECT with the updated Quest25 app. Physical operator confirmation is pending; published release links above refer to the previous public build.

@@ -21,6 +21,7 @@
 #include <meta_body_tracking_fidelity.h>
 #include "network.h"
 #include "arm_kinematics.h"
+#include "arm_limits.h"
 #include "drive_input.h"
 #include "laser_map.h"
 #include "start_flow.h"
@@ -347,8 +348,8 @@ void main(){
         rows.push_back({poseMirror?"Pose mirror: ON":"Pose mirror: OFF","Facing Pepper: reflect arms, hands, head and torso",{{"cmd","local_pose_mirror"}}});
         rows.push_back({"Recalibrate","Recalibrate head, arms, wrists, hands, torso and base reference",{{"cmd","local_calibrate"}}});
         auto limits=state.value("robot_limits",J::object());
-        const char* limitKeys[]={"range","speed"};const char* limitLabels[]={"Joint limits","Speed limits"};
-        for(int i=0;i<2;++i)rows.push_back({std::string(limitLabels[i])+(limits.value(limitKeys[i],true)?": ON":": OFF"),"Pause then change this software limit / START resumes",{{"cmd","local_robot_limit"},{"key",limitKeys[i]},{"slot",i},{"enabled",!limits.value(limitKeys[i],true)}}});
+        const char* limitKeys[]={"range","speed"};const char* limitLabels[]={"Head range","Speed limits"};
+        for(int i=0;i<2;++i)rows.push_back({std::string(limitLabels[i])+(limits.value(limitKeys[i],true)?": ON":": OFF"),"Arms always use native position bounds / STOP before changing settings",{{"cmd","local_robot_limit"},{"key",limitKeys[i]},{"slot",i},{"enabled",!limits.value(limitKeys[i],true)}}});
         const char* gestureNames[]={"wave_left","wave_right","point_left","point_right","yes","no","happy","sad","dance","funny","look_around","make_space"};
         const char* gestureLabels[]={"Wave left","Wave right","Point left","Point right","Affirm","Refuse","Happy","Sad","Dance","Funny","Look around","Make space"};
         auto official=state.value("official_animations",J::array());
@@ -594,11 +595,13 @@ void main(){
             wrist=goal.wrist;elbowWeight=goal.elbowWeight;faceBlend[side]=goal.blend;
         }
         goalHeight[side]=wrist.z;
-        auto seed=pepper_arm::directionSeed(upper,fore,left);
-        auto solution=elbowWeight<.99f?pepper_arm::solveFace(wrist,elbow,left,seed,elbowWeight):pepper_arm::solve(wrist,elbow,left,seed,elbowWeight);
+        auto armStatus=network->snapshot();
+        auto armLimits=poseMirror?pepper_arm::mirroredLimits(pepper_arm::liveLimits(armStatus,!left)):pepper_arm::liveLimits(armStatus,left);
+        auto seed=pepper_arm::directionSeed(upper,fore,left,armLimits);
+        auto solution=elbowWeight<.99f?pepper_arm::solveFace(wrist,elbow,left,seed,elbowWeight,armLimits):pepper_arm::solve(wrist,elbow,left,seed,elbowWeight,armLimits);
         if(armSolutionValid[side]){
-            auto continuous=pepper_arm::solve(wrist,elbow,left,armPrevious[side],elbowWeight);
-            if(pepper_arm::cost(continuous,left,wrist,elbow,elbowWeight)<=pepper_arm::cost(solution,left,wrist,elbow,elbowWeight)+.000025f)solution=continuous;
+            auto continuous=pepper_arm::solve(wrist,elbow,left,armPrevious[side],elbowWeight,armLimits);
+            if(pepper_arm::cost(continuous,left,wrist,elbow,elbowWeight)<=pepper_arm::cost(solution,left,wrist,elbow,elbowWeight)+.00000001f)solution=continuous;
         }
         armPrevious[side]=solution;armSolutionValid[side]=true;
         armError[side]=pepper_arm::length(pepper_arm::sub(pepper_arm::forward(solution,left).wrist,wrist));

@@ -1,5 +1,6 @@
 #include "../quest/src/main/cpp/head_assist.h"
 #include "../quest/src/main/cpp/arm_kinematics.h"
+#include "../quest/src/main/cpp/arm_limits.h"
 #include "../quest/src/main/cpp/drive_input.h"
 #include "../quest/src/main/cpp/laser_map.h"
 #include <cassert>
@@ -86,6 +87,35 @@ int main(){
         }
     }
     std::puts("PASS unequal human bone lengths preserve robot elbow and wrist directions");
+    // Raising above vertical must retain the back-facing shoulder branch.
+    // Test the whole native static range, not the old app's reduced envelope.
+    int overhead=0;
+    for(bool left:{true,false})for(float pitch:{-2.08f,-2.f,-1.8f,-1.5708f,-1.4f,-.7f})
+    for(float roll:{.009f,.1f,.7f,1.48f,1.55f})for(float yaw:{-2.05f,-1.f,0.f,1.f,2.05f})
+    for(float bend:{.009f,.3f,1.f,1.3f}){
+        Q ref{pitch,left?roll:-roll,yaw,left?-bend:bend};auto expected=forward(ref,left);
+        auto seed=directionSeed(expected.elbow,sub(expected.wrist,expected.elbow),left);
+        auto q=solve(expected.wrist,expected.elbow,left,seed,1.f);auto p=forward(q,left);
+        assert(length(sub(p.elbow,expected.elbow))<.002f);
+        assert(length(sub(p.wrist,expected.wrist))<.002f);
+        if(roll>.1f&&roll<1.f)assert(std::abs(seed[0]-pitch)<.002f);
+        ++overhead;
+    }
+    // Live robot bounds can differ, including asymmetric left/right limits.
+    using J=nlohmann::json;
+    J status={{"native_arm_limits",{{"LShoulderPitch",{-2.09f,2.09f}},
+        {"LShoulderRoll",{.005f,1.57f}},{"LElbowYaw",{-2.09f,2.09f}},
+        {"LElbowRoll",{-1.57f,-.005f}}}}};
+    auto live=liveLimits(status,true);assert(live.hi[1]==1.57f&&live.lo[0]==-2.09f);
+    auto reflected=mirroredLimits(live);assert(reflected.lo[1]==-1.57f&&reflected.hi[3]==1.57f);
+    auto twice=mirroredLimits(reflected);assert(twice.lo==live.lo&&twice.hi==live.hi);
+    auto target=forward({-2.087f,1.56f,2.087f,-1.56f},true);
+    auto qlive=solve(target.wrist,target.elbow,true,directionSeed(target.elbow,sub(target.wrist,target.elbow),true,live),1.f,live);
+    auto actual=forward(qlive,true);assert(length(sub(actual.wrist,target.wrist))<.002f);
+    status["native_arm_limits"]["LShoulderRoll"]={.5f,-.5f};
+    assert(liveLimits(status,true).lo==nativeLimits(true).lo);
+    assert(liveLimits(J::object(),false).hi==nativeLimits(false).hi);
+    std::printf("PASS %d overhead/native-range round trips, live bounds and mirrored bounds\n",overhead);
     int count=0;float worst=0;
     auto began=std::chrono::steady_clock::now();
     for(bool left:{true,false})for(float pitch:{-1.f,-.4f,.3f,1.2f})for(float roll:{.1f,.5f,1.f})for(float yaw:{-1.2f,0.f,1.2f})for(float bend:{.2f,.8f,1.4f}){
@@ -119,10 +149,10 @@ int main(){
     auto lp=forward(l,true).wrist,rp=forward(r,false).wrist;
     assert(length(sub(lp,{rp.x,-rp.y,rp.z}))<.002f);
     std::printf("Near-face goal error %.2f mm\n",length(sub(lp,goal))*1000);
-    // This goal is inside the minimum reach with the conservative elbow limit;
+    // This goal is inside the minimum reach with the native elbow geometry;
     // report the residual, rather than claiming exact full human workspace.
     assert(length(sub(lp,goal))<.026f);
-    // Impossible goals remain finite and inside the existing conservative limits.
+    // Impossible goals remain finite and inside native position bounds.
     for(bool left:{true,false})for(V goal2:{V{2,0,2},V{0,0,0},V{-.5f,.5f,-.5f}}){
         auto q=solve(goal2,{0,0,-.18f},left,{1.3f,left?.15f:-.15f,0,left?-.5f:.5f});
         auto bounded=clamp(q,left);for(int k=0;k<4;++k){assert(std::isfinite(q[k]));assert(q[k]==bounded[k]);}
