@@ -36,6 +36,7 @@
 #include "pose_mirror.h"
 #include "thermal_color.h"
 #include "dashboard_theme.h"
+#include "battery_status.h"
 #include "phrase_catalog.h"
 namespace ui_type {constexpr float heading=1.6f,body=1.5f,secondary=1.2f,primary=2.4f;}
 
@@ -893,6 +894,14 @@ void main(){
         centeredText("Close",close,.9f,.96f,1,ui_type::body);
         if(pointerOnHelp&&pointerGrip.held&&pointerValid)panel(pointer.x-6,pointer.y-6,12,12,.4f,1,.83f,6);
     }
+    void drawBatteryPower(bool connected){
+        if(!connected)return;
+        KeepColors original(preserveColors);auto c=dashboard_theme::accent;
+        pixelLine(377,23,377,30,2,c[0],c[1],c[2]);
+        pixelLine(383,23,383,30,2,c[0],c[1],c[2]);
+        panel(375,28,10,9,c[0],c[1],c[2],3);
+        pixelLine(380,35,380,43,2,c[0],c[1],c[2]);
+    }
     void drawStudio(bool tracking){
         using J=nlohmann::json;auto state=network->snapshot();auto t=state.value("telemetry",J::object());
         bool fresh=network->connected&&milliseconds()-network->lastSnapshot<750&&t.value("available",false)&&state.value("robot_mono",0.)-t.value("robot_mono",-100.)<.75;
@@ -906,6 +915,7 @@ void main(){
         stats+="   |   Robot ";stats+=fresh&&t.contains("awake")&&t["awake"].is_boolean()?(t["awake"].get<bool>()?"AWAKE":"REST"):"--";
         fitText(stats,390,22,layoutEditing?365:790,.75f,.85f,.9f,ui_type::body);
         panel(270,22,100,22,.13f,.145f,.17f,7);if(batteryValid&&battery>0){auto color=dashboard_theme::batteryColor(battery);panel(273,25,94*battery,16,color[0],color[1],color[2],4);}
+        drawBatteryPower(battery_status::connected(readings,fresh)==1);
 
         const auto fused=dashboard_layout::fusion;surfaceCard(fused.x,fused.y,fused.w,fused.h);
         text("Pepper vision / Top + Bottom",fused.x+23,fused.y+10,.85f,.88f,.93f,ui_type::heading);

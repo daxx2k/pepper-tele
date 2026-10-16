@@ -43,3 +43,8 @@ RGB feeds request 10 fps each while both are enabled; a single enabled RGB feed 
 ## Arm matching (0.3.19)
 
 Shoulders, elbows and wrists use native Pepper position bounds read from the connected robot. Head range retains its existing head-only software envelope. Speed settings, smooth initial engagement, collision protection and STOP are unchanged. Raise an arm slowly during the first supervised trial; compare tracked, commanded and measured poses. Human and Pepper proportions and collision-dependent native limits prevent an exact match for every pose. Recalibrate with the usual START flow after updating both endpoints.
+
+
+## External power indicator
+
+A blue plug next to the battery means the robot reports its power supply connected. It is separate from the charging flag: a connected power supply does not necessarily mean active battery charging. The indicator hides when telemetry is stale or the firmware supplies no usable signal. It is never inferred from battery percentage. Older battery firmware may infer plug status itself; the app displays the robot report.
