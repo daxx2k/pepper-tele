@@ -342,7 +342,7 @@ void main(){
         if(layoutEditing){rows.push_back({"Preset "+std::to_string(layoutSlot+1),"Choose one of three saved layouts",{{"cmd","local_layout_slot"}}});rows.push_back({"Save","Save the current panel arrangement",{{"cmd","local_layout_save"}}});rows.push_back({"Load","Restore the selected preset",{{"cmd","local_layout_load"}}});rows.push_back({"Reset","Restore the original arrangement",{{"cmd","local_layout_reset"}}});}
         bool motionRunning=network->armed||startFlow.active();
         rows.push_back({startFlow.active()?"STARTING...":motionRunning?"STOP":"START","Start with calibration / stop motion and recovery",{{"cmd",motionRunning?"local_stop":"local_start"}}});
-        rows.push_back({network->listenAudio?"Listen: ON":"Listen: OFF","Pepper microphones / OFF at startup",{{"cmd","local_listen"}}});
+        rows.push_back({network->listenAudio?"Listen: ON":"Listen: OFF","Pepper mic + speaker return / OFF at startup",{{"cmd","local_listen"}}});
         rows.push_back({network->voiceMode==0?"Voice: Pepper TTS":network->voiceMode==1?"Voice: puppeteer":"Voice: Piper / Cori","Hold left grip / release to speak",{{"cmd","local_voice_mode"}}});
         auto speechGestures=state.value("speech_gestures",J::object());
         rows.push_back({speechGestures.value("enabled",false)?"Gestures: ON":"Gestures: OFF","Release left grip to gesture / both grips toggle",{{"cmd","speech_gestures"},{"enabled",!speechGestures.value("enabled",false)}}});

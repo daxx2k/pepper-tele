@@ -4,13 +4,13 @@
 
 <img src="docs/assets/telepepper-icon.png" alt="TelePepper app icon: a Pepper robot with blue accents" width="140" />
 
-[Download the 0.3.21 experimental release](https://github.com/daxx2k/pepper-tele/releases/tag/v0.3.21-test) Â· [Pepper 2.5 branch](https://github.com/daxx2k/pepper-tele/tree/pepper25)
+[Download the 0.3.22 experimental release](https://github.com/daxx2k/pepper-tele/releases/tag/v0.3.22-test) Â· [Pepper 2.5 branch](https://github.com/daxx2k/pepper-tele/tree/pepper25)
 
 TelePepper lets you control **Pepper, the wheeled humanoid robot developed by SoftBank Robotics**, using a **Meta Quest virtual reality headset**. The robot follows your head and arm movements; the headset controllers let you drive it, and live camera feeds show what the robot sees.
 
 For **Wizard of Oz research**, an operator controls the robot's speech and behaviour while participants interact with it. TelePepper provides speech controls, gestures and lights for these interactions.
 
-**Version 0.3.21-test â€” experimental prerelease.** This is a development project for operator-supervised evaluation. Automated checks do not prove physical latency, pose matching or compatibility on another robot.
+**Version 0.3.22-test â€” experimental prerelease.** This is a development project for operator-supervised evaluation. Automated checks do not prove physical latency, pose matching or compatibility on another robot.
 
 The 0.3.19 Quest update aligns Depth, LiDAR and Tablet preview titles and content areas, with consistent internal margins that keep the previews inside the rounded cards.
 
@@ -20,26 +20,28 @@ The 0.3.19 Quest update shows built-in phrases even before connecting, keeps the
 
 ## Arm elevation and external power
 
+Release **0.3.22** updates the Quest audio monitor. With **Listen: ON**, the Quest keeps playing the robot microphone feed while Piper speaks. Listen starts off, and live push-to-talk still mutes the return to reduce feedback.
+
 Release **0.3.21** uses OpenXR gravity and shoulder heading for arm elevation rather than the estimated hip-to-spine tilt. Existing Pepper torso compensation, robot geometry, native joint limits and control rates are preserved. Quest-native regression tests cover level forward arms and a 15/20-degree tilted spine estimate. Both Quest variants pass the gravity-frame regression tests; live confirmation of this correction on Pepper remains pending. A blue plug next to the battery now shows the robot-reported external power connection; missing or stale telemetry hides it.
 
 ## Download apps
 
-**Ready-to-install compiled apps are available in [GitHub Releases](https://github.com/daxx2k/pepper-tele/releases/tag/v0.3.21-test). You do not need to build the source code.** An APK is an Android app installation file. On the release page, expand **Assets** if the downloads are not visible.
+**Ready-to-install compiled apps are available in [GitHub Releases](https://github.com/daxx2k/pepper-tele/releases/tag/v0.3.22-test). You do not need to build the source code.** An APK is an Android app installation file. On the release page, expand **Assets** if the downloads are not visible.
 
 | Your robot software | App and device | Download |
 | --- | --- | --- |
-| Pepper NAOqi 2.9 | Meta Quest VR headset | [TelePepper-Quest.apk](https://github.com/daxx2k/pepper-tele/releases/download/v0.3.21-test/TelePepper-Quest.apk) |
-| Pepper NAOqi 2.9 | Android tablet on the Pepper robot | [TelePepper-Pepper.apk](https://github.com/daxx2k/pepper-tele/releases/download/v0.3.21-test/TelePepper-Pepper.apk) |
-| Pepper NAOqi 2.5 | Meta Quest VR headset | [TelePepper-Quest25.apk](https://github.com/daxx2k/pepper-tele/releases/download/v0.3.21-test/TelePepper-Quest25.apk) |
+| Pepper NAOqi 2.9 | Meta Quest VR headset | [TelePepper-Quest.apk](https://github.com/daxx2k/pepper-tele/releases/download/v0.3.22-test/TelePepper-Quest.apk) |
+| Pepper NAOqi 2.9 | Android tablet on the Pepper robot | [TelePepper-Pepper.apk](https://github.com/daxx2k/pepper-tele/releases/download/v0.3.22-test/TelePepper-Pepper.apk) |
+| Pepper NAOqi 2.5 | Meta Quest VR headset | [TelePepper-Quest25.apk](https://github.com/daxx2k/pepper-tele/releases/download/v0.3.22-test/TelePepper-Quest25.apk) |
 
 For first setup, download the complete package with English instructions and installation tools:
 
-- [Pepper 2.9 install ZIP](https://github.com/daxx2k/pepper-tele/releases/download/v0.3.21-test/TelePepper-Pepper29-install-0.3.21.zip) â€” includes both Quest and Pepper tablet apps.
-- [Pepper 2.5 install ZIP](https://github.com/daxx2k/pepper-tele/releases/download/v0.3.21-test/TelePepper-Pepper25-install-0.3.21.zip) â€” includes the Quest25 app; no Pepper Android tablet app is required.
+- [Pepper 2.9 install ZIP](https://github.com/daxx2k/pepper-tele/releases/download/v0.3.22-test/TelePepper-Pepper29-install-0.3.22.zip) â€” includes both Quest and Pepper tablet apps.
+- [Pepper 2.5 install ZIP](https://github.com/daxx2k/pepper-tele/releases/download/v0.3.22-test/TelePepper-Pepper25-install-0.3.22.zip) â€” includes the Quest25 app; no Pepper Android tablet app is required.
 
 Use the package matching your robot's NAOqi version. Source ZIPs are for developers and are not required to install the apps. [View all releases](https://github.com/daxx2k/pepper-tele/releases).
 
-**Pepper NAOqi 2.5 users:** use the [0.3.19 setup/Exit update](https://github.com/daxx2k/pepper-tele/releases/tag/v0.3.21-test). It fixes warning-prefixed firmware replies and opens setup in the headset Home environment. The Pepper 2.9 downloads above use the separate 0.3.19 update.
+**Pepper NAOqi 2.5 users:** use the [0.3.19 setup/Exit update](https://github.com/daxx2k/pepper-tele/releases/tag/v0.3.22-test). It fixes warning-prefixed firmware replies and opens setup in the headset Home environment. The Pepper 2.9 downloads above use the separate 0.3.19 update.
 
 The 0.3.19 update fixes **Exit TelePepper** on both variants. Exit closes the VR studio directly if it never connected to a robot. After a lost connection or an unconfirmed stop/normal-mode return, controls offer **Close VR studio only**; this closes the headset scene without claiming the robot has returned to normal. With a connected robot, normal mode still requires a fresh confirmed STOP and a successful robot acknowledgement.
 
