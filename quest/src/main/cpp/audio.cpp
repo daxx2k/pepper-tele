@@ -58,7 +58,8 @@ void Network::audioLoop(){
             std::lock_guard<std::mutex> g(mutex_);audioStatus_=ttsVoice?"Pepper TTS / hold left grip":input?(output?"Audio ready / left grip to talk":"Headphones unavailable: retrying"):(output?"Microphone unavailable: check permission":"Audio reconnecting");
         }
         bool sending=talk&&audioFocus&&fresh&&connected&&!ttsVoice;
-        playback.muted=!listenAudio||!audioFocus||!connected||((sending||voiceAudioPending())&&!fullDuplex);
+        // Suppress live mic feedback, not synthesized speech playing on the robot.
+        playback.muted=!listenAudio||!audioFocus||!connected||(sending&&!fullDuplex);
         if(connected&&sock>=0&&session.size()==32){
             if(now-lastHello>800){auto hello=nlohmann::json({{"session",session}}).dump();send(sock,hello.data(),hello.size(),MSG_NOSIGNAL);lastHello=now;}
             unsigned char packet[1500];ssize_t size;
