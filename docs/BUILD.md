@@ -19,3 +19,7 @@ python tools/privacy_check.py
 ```
 
 The robot uses its existing Python 2.7 qi/Pillow environment. Do not install PC developer dependencies on the robot or upgrade firmware. Native tests are separate from the Python suite. Physical Pepper 2.5 compatibility remains unverified.
+
+## Private Meta distribution
+
+See [META-BETA.md](META-BETA.md) for the optional signed Pepper 2.5 Beta profile.

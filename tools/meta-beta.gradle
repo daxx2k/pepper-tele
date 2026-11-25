@@ -1,0 +1,27 @@
+// Enable only for a release APK uploaded to a private Meta channel.
+if (providers.gradleProperty('metaBeta').orNull == 'true') {
+    def beta = new Properties()
+    rootProject.file('config/meta-beta.properties').withInputStream { beta.load(it) }
+    def keyPath = System.getenv('ROBOTTELE_META_KEYSTORE')
+    def keyPass = System.getenv('ROBOTTELE_META_KEY_PASSWORD')
+    if (!keyPath || !keyPass || !new File(keyPath).isFile()) {
+        throw new GradleException('Set the private ROBOTTELE_META_KEYSTORE and ROBOTTELE_META_KEY_PASSWORD before building a Meta Beta.')
+    }
+    android.defaultConfig {
+        targetSdk 34
+        versionName beta.getProperty('versionName')
+        versionCode beta.getProperty('versionCode').toInteger()
+    }
+    android.sourceSets.release.manifest.srcFile 'src/metaBeta/AndroidManifest.xml'
+    def distributionKey = android.signingConfigs.create('metaDistribution') {
+        storeFile new File(keyPath)
+        storePassword keyPass
+        keyAlias System.getenv('ROBOTTELE_META_KEY_ALIAS') ?: 'meta-release'
+        keyPassword keyPass
+    }
+    android.buildTypes.release {
+        debuggable false
+        minifyEnabled false
+        signingConfig distributionKey
+    }
+}
