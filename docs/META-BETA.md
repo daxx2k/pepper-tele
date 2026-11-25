@@ -14,7 +14,7 @@ The profile uses target SDK 34, OpenGL ES 3.0, automatic install location, a lan
 
 ## Branding and migration
 
-The app icon uses the approved text-free Soft 3D portrait. Android adaptive launchers apply their own outer mask; the foreground inset keeps the robot inside the safe area. The same portrait is available in `docs/assets/`.
+The app icon uses the approved realistic close-up robot portrait (coral-peach for Pepper, teal-lilac for NAO). Android adaptive launchers apply their own outer mask; the foreground inset keeps the robot inside the safe area. The same portrait is available in `docs/assets/`.
 
 An existing sideloaded app signed with a different debug key cannot be updated directly by the signed Meta APK. Back up/export pairing and settings before planning that migration; do not uninstall automatically. Building or uploading does not migrate the headset.
 

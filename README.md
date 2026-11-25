@@ -89,6 +89,6 @@ The 0.3.19 Quest update separates the Quick Help version line and subtitle in bo
 
 Release **0.3.19** corrects arm mapping beyond vertical and uses native Pepper position bounds for shoulders, elbows and wrists. Existing speed limits and other controls are retained. Update the Quest app and the head service together; for 2.9, install the updated tablet APK and use Update service while stopped. For 2.5, cleanly exit the old service and CONNECT with the updated Quest25 app. The operator reported improved arm following on Pepper 2.9. Physical Pepper 2.5 confirmation remains pending.
 
-The source now uses the coordinated text-free Soft 3D Pepper icon. Existing public release downloads retain their original assets; this branding update does not change robot control.
+The apps use a realistic Pepper portrait on a coral-peach background. This branding update does not change robot control.
 
 The separate TelePepper 2.5 private Meta Beta has a reproducible signed build profile: see [Meta Beta instructions](docs/META-BETA.md). It is distinct from the Pepper 2.9 Meta app.
