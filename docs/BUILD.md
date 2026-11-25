@@ -25,3 +25,7 @@ C++/Java test files are standalone checks, including native tests run on an ARM6
 Optional lab setup: copy `config/pepper.properties.example` to `.local/pepper.properties`. Fill in your own values, then pass explicit device addresses/serials to `tools/configure.py`, `tools/robot_remote.py`, and `tools/install.ps1`. Runtime credentials travel into private app storage rather than source/build assets. Normal recipients can pair through the apps; developer setup is optional.
 
 The official animation resource package is included in source. After changing its clips or version, rebuild it with `python tools/package_animations.py` before building the APKs. The head service installs or upgrades this separate resource package at startup.
+
+## Private Meta distribution
+
+See [META-BETA.md](META-BETA.md) for the optional signed Beta profile and signing-key requirements.

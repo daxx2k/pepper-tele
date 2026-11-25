@@ -1,0 +1,10 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools" android:installLocation="auto">
+    <uses-feature android:glEsVersion="0x00030000" android:required="true" />
+    <application>
+        <activity android:name=".LauncherActivity" android:screenOrientation="landscape"
+            android:launchMode="singleTask" android:excludeFromRecents="true" />
+        <activity android:name=".TeleoperationActivity" android:excludeFromRecents="true"
+            tools:replace="android:excludeFromRecents" />
+    </application>
+</manifest>
