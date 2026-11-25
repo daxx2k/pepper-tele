@@ -24,7 +24,7 @@ Release **0.3.22** updates the Quest audio monitor. With **Listen: ON**, the Que
 
 Release **0.3.21** uses OpenXR gravity and shoulder heading for arm elevation rather than the estimated hip-to-spine tilt. Existing Pepper torso compensation, robot geometry, native joint limits and control rates are preserved. Quest-native regression tests cover level forward arms and a 15/20-degree tilted spine estimate. Both Quest variants pass the gravity-frame regression tests; live confirmation of this correction on Pepper remains pending. A blue plug next to the battery now shows the robot-reported external power connection; missing or stale telemetry hides it.
 
-The private Meta Beta uses the new text-free Soft 3D app icon. For reproducible signed builds, see [Meta Beta build instructions](docs/META-BETA.md). Public APK downloads below remain the last published GitHub release.
+The apps use coordinated, realistic robot portraits: coral-peach for TelePepper and teal-lilac for TeleNao. For reproducible signed private builds, see [Meta Beta build instructions](docs/META-BETA.md).
 
 ## Download apps
 
